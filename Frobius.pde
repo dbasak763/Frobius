@@ -1,6 +1,6 @@
 
 int lifespan;
-int numParticles = 1000;
+int numParticles = 999;
 float unit_of_time = 1.0;
 
 
