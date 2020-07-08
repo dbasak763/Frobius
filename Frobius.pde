@@ -4,6 +4,9 @@ int numParticles = 999;
 float unit_of_time = 0.5;
 
 
+
+
+
 boolean showImage = true;
 boolean createParticleSystem = false; // create Particle System
 boolean createPointSystem = true; // create Spiral Path

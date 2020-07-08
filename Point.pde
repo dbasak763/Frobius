@@ -7,6 +7,8 @@ class Point
    PVector randDirection;
    PVector netForce;
    PVector velocity;
+   int Max_Rebirth_Distance_X, Max_Rebirth_Distance_Y;
+   
    PointSystem parentps; //tracks the parent point system to which this point belongs
    
    Point(float px, float py, PointSystem parent)
@@ -14,7 +16,12 @@ class Point
       x = px;
       y = py;
       mass = 1.0;
+
       parentps = parent;
+      
+      Max_Rebirth_Distance_X = (int)(parentps.bottom_right_X - parentps.top_left_X);
+      Max_Rebirth_Distance_Y = (int)(parentps.bottom_right_Y - parentps.top_left_Y);
+      
       randDirection = new PVector(0, 0);
       netForce = new PVector(0, 0);
       velocity = new PVector(0, 0);
@@ -56,6 +63,27 @@ class Point
 
       x = constrain(x, parentps.top_left_X, parentps.bottom_right_X); //contrain the point within the bounding box of the point system
       y = constrain(y, parentps.top_left_Y, parentps.bottom_right_Y); //contrain the point within the bounding box of the point system
+      
+      
+      //move point away from boundaries to prevent clustering, doesn't work properly
+      if(x == parentps.top_left_X)
+      {
+          x += random(0, Max_Rebirth_Distance_X);
+      }
+      else if(x == parentps.bottom_right_X)
+      {
+          x -= random(0, Max_Rebirth_Distance_X);
+      }
+      
+      if(y == parentps.top_left_Y)
+      {
+         y += random(0, Max_Rebirth_Distance_Y);
+      }
+      else if(y == parentps.bottom_right_Y)
+      {
+         y -= random(0, Max_Rebirth_Distance_Y); 
+      }
+      
 
    }
 }
