@@ -22,6 +22,8 @@ float emitter_squarewall_len;
 boolean display_points = true;
 boolean display_lines = true;
 
+boolean printpixelgradients = true;
+
 
 public void settings() {
   size(displayWidth-reduceFullScreenBy, displayHeight-reduceFullScreenBy);
@@ -63,9 +65,9 @@ void drawGUIBackground(){
 
 
 void setupGUIControls (PApplet parent) {
-  
+   //<>//
     PFont GUIfont = createFont ("verdana", labelsize,false);
-    ControlFont font1 = new ControlFont(GUIfont,labelsize); //<>//
+    ControlFont font1 = new ControlFont(GUIfont,labelsize);
        //<>//
     Group g1 = cp5.addGroup("Image Knobs")
                   .setBackgroundColor(color(0, 64))
@@ -108,7 +110,7 @@ void setupGUIControls (PApplet parent) {
        .setPosition((int)(130*guiXscale),(int)(110*guiYscale))
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
-       .setRange(10,60)
+       .setRange(1,60)
        .setValue(30)
        .moveTo(g1)
        .plugTo(parent,"framerate")
@@ -420,7 +422,7 @@ void controlEvent(ControlEvent theEvent) {
   
   else if (theEvent.isFrom((Slider) cp5.getController("AttractRepelRadius"))) { 
         D_attraction = (float) cp5.getController("AttractRepelRadius").getValue();
-        D_repulsion = D_attraction/4.0;
+        D_repulsion = 2.0;//D_attraction/4.0;
         println ("AttractRepelRadius:" + D_attraction);
   }
   else if (theEvent.isFrom((Slider) cp5.getController("SquareBoxDim"))) {
@@ -693,11 +695,10 @@ void compute_PartialDerivativesOfPixelWRTAdjacentPixels()
       adjPixelsDerivatives[i][baseimg.height - 2][2] = BIG_NUM; //set derivative of 3rd neighbor pixel to BIG_NUM
   }
   
+  String s = new String(), s0= new String(), s1= new String(), s2= new String(), s3= new String(), s4= new String(), s5= new String(), s6= new String(), s7= new String();
   
-  
-  for (i = 1; i < baseimg.width - 1; i++){
-    for (j = 1; j < baseimg.height - 1; j++){
-
+  for (j = 1; j < baseimg.height - 1; j++){
+       for (i = 1; i < baseimg.width - 1; i++){
           
           color c = baseimg.get(i, j);
           color c1 = baseimg.get(i, j-1); 
@@ -729,74 +730,24 @@ void compute_PartialDerivativesOfPixelWRTAdjacentPixels()
           adjPixelsDerivatives[i][j][6] = (grey7 - grey) / 1.0;
           adjPixelsDerivatives[i][j][7]  = (grey8 - grey) / sqrt(2);//corner
           
-          
-          //changing values
-          
-          /*
-          
-          float grey = convertToGrayScale(baseimg.get(i, j));
-          
-          adjPixelsDerivatives[i][j][0] = (convertToGrayScale(baseimg.get(i, j - 1)) - grey) / 1.0;
-          adjPixelsDerivatives[i][j][1] = (convertToGrayScale(baseimg.get(i, j + 1)) - grey) / 1.0;
-          adjPixelsDerivatives[i][j][2] = (convertToGrayScale(baseimg.get(i + 1, j)) - grey) / 1.0;
-          adjPixelsDerivatives[i][j][3] = (convertToGrayScale(baseimg.get(i + 1, j - 1)) - grey) / sqrt(2);//corner
-          adjPixelsDerivatives[i][j][4] = (convertToGrayScale(baseimg.get(i + 1, j + 1)) - grey) / sqrt(2);//corner
-          adjPixelsDerivatives[i][j][5] = (convertToGrayScale(baseimg.get(i - 1, j - 1)) - grey) / sqrt(2);//corner
-          adjPixelsDerivatives[i][j][6] = (convertToGrayScale(baseimg.get(i - 1, j)) - grey) / 1.0;
-          adjPixelsDerivatives[i][j][7] = (convertToGrayScale(baseimg.get(i - 1, j + 1)) - grey) / sqrt(2);//corner
-         
-          */
+          if (printpixelgradients) {
+              if (i >=200 && i <=204 && j >= 142 && j <= 148) {
+                s  += " " + nf(convertToGrayScale(baseimg.get(i, j)), 7);
+                s0 +=  " "; if (adjPixelsDerivatives[i][j][0] >= 0) s0 += "+"; s0 += nf(adjPixelsDerivatives[i][j][0], 3,2);
+                s1 +=  " "; if (adjPixelsDerivatives[i][j][1] >= 0) s1 += "+"; s1 += nf(adjPixelsDerivatives[i][j][1], 3,2);
+                s2 +=  " "; if (adjPixelsDerivatives[i][j][2] >= 0) s2 += "+"; s2 += nf(adjPixelsDerivatives[i][j][2], 3,2);
+                s3 +=  " "; if (adjPixelsDerivatives[i][j][3] >= 0) s3 += "+"; s3 += nf(adjPixelsDerivatives[i][j][3], 3,2);
+                s4 +=  " "; if (adjPixelsDerivatives[i][j][4] >= 0) s4 += "+"; s4 += nf(adjPixelsDerivatives[i][j][4], 3,2);
+                s5 +=  " "; if (adjPixelsDerivatives[i][j][5] >= 0) s5 += "+"; s5 += nf(adjPixelsDerivatives[i][j][5], 3,2);
+                s6 +=  " "; if (adjPixelsDerivatives[i][j][6] >= 0) s6 += "+"; s6 += nf(adjPixelsDerivatives[i][j][6], 3,2);
+                s7 +=  " "; if (adjPixelsDerivatives[i][j][7] >= 0) s7 += "+"; s7 += nf(adjPixelsDerivatives[i][j][7], 3,2);
+    
+                if (i== 204){
+                  s += "\n"; s0 += "\n"; s1 += "\n"; s2 += "\n"; s3 += "\n"; s4 += "\n"; s5 += "\n"; s6 += "\n"; s7 += "\n";
+                }
+              }
+          }
     }
   }
+          if (printpixelgradients) println (s); println (s0); println (s1); println (s2); println (s3); println (s4); println (s5); println (s6); println (s7); 
 }
-
-
-
-/*//compute gradient between two points 
-float compute_gradient(Point p1, Point p2)
-{
-    float displacement_X = p2.x - p1.x;
-    float displacement_Y = p2.y - p1.y;
-    
-    color c1 = baseimg.get((int)(p1.x), (int)(p1.y));
-    color c2 = baseimg.get((int)(p2.x), (int)(p2.y));
-    
-    float z1 = convertToGrayScale(c1);
-    float z2 = convertToGrayScale(c2);
-    
-    //println("z1 = " + z1 + ", z2 = " + z2);
-    
-    float run = sqrt(displacement_X * displacement_X + displacement_Y * displacement_Y);
-    float rise = z2 - z1;
-    float slope = rise / run;
-    return slope;
-}
-
-/*
-
-//iterate through pixelArray of baseimg and precompute gradients Array
-//i corresponds to row, j corresponds to column
-
-void precompute_pointDensity()
-{
-    float[][] gradientArray = new float[baseimg.height][baseimg.width];
-    float[][] pointDensity = new float[baseimg.height][baseimg.width];
-    
-    for(int i = 0; i < baseimg.height; i++)
-    {
-        for(int j = 0; j < baseimg.width; j++)
-        {
-             gradientArray[i][j] = compute_gradient_pixel(i, j);
-             
-             if(i != 0) pointDensity[i][j] = pointDensity[i-1][j] +
-             compute_partialderivative_X(i, j);
-             else if(j != 0) pointDensity[i][j] = pointDensity[i][j - 1] + 
-             compute_partialderivative_Y(i, j);
-             else pointDensity[i][j] = 30;//(i, j) is (0, 0)
-             
-        }
-    }
-    
-}
-
-*/

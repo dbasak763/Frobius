@@ -144,12 +144,13 @@ class PointSystem
               force_mag = 3.0 * (D_repulsion - d); //attraction force
              }
              else { 
-              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) + 3 * (D_repulsion - d_a) ;
+              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) + 3 * (D_repulsion - d_a) ; 
              }
        }
        else {  //points repel if d  < D_repulsion        
              force_mag = 5.0 * (D_repulsion -d);
        }
+       force_mag /= 20.0;
     }
     
     /*
