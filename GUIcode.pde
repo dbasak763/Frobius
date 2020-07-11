@@ -48,6 +48,7 @@ void setup() {
   //to avoid debugging an issue seen intermittently with Widows file selector
   if (loadHardcodedImage){
     baseimg = loadImage("C:\\Users\\rajrupa\\Desktop\\vangoghpainting.jpg");
+    
     OperationsAfterBaseImageLoaded();
   }
 }
@@ -348,7 +349,13 @@ void OperationsAfterBaseImageLoaded(){
     baseimg.resize(imgWidth, imgHeight);
     
     imgTopLeftCorner_X = (int) (guiwidth + (width - guiwidth - baseimg.width)/2);
-   
+    
+    
+    //println("baseimg.width = " + baseimg.width + ", baseimg.height = " + baseimg.height);
+    
+    //Update adjpixel_values[][][8] array
+    adjPixelsDerivatives =  new float[baseimg.width][baseimg.height][8];
+    compute_PartialDerivativesOfPixelWRTAdjacentPixels();
 }
 
 
@@ -598,3 +605,193 @@ void mouseReleased(){
       }
       return false;
   }
+  
+  
+  
+int convertToGrayScale(color c)
+{
+    int r=(c&0x00FF0000)>>16; // red part
+    int g=(c&0x0000FF00)>>8; // green part
+    int b=(c&0x000000FF); // blue part
+    int grey=(r+b+g)/3;
+    return grey;
+}
+
+//compute the partial derivatives for a pixel location (i, j)
+//p = pixels[i][j] where i corresponds to row and j corresponds to column
+ 
+void compute_PartialDerivativesOfPixelWRTAdjacentPixels()
+{
+  
+  //for boundary pixels on image, set to white, high color values
+  //check i = 0, i  = baseimg.width - 1, j = 0, j = baseimg.height - 1
+  
+  int i, j;
+  
+  //set partial derivatives of adjacent neighbors of corner pixels of image to 0 and diagonal neighbors to -BIG_NUM 
+  
+  adjPixelsDerivatives[0][0][6] = adjPixelsDerivatives[0][0][0] = 0; //topLeft
+  adjPixelsDerivatives[0][0][5] = - BIG_NUM;
+  adjPixelsDerivatives[0][baseimg.height - 1][0] = adjPixelsDerivatives[0][baseimg.height - 1][2] = 0; //bottomLeft
+  adjPixelsDerivatives[0][baseimg.height - 1][7] = -BIG_NUM;
+  adjPixelsDerivatives[baseimg.width - 1][0][1] = adjPixelsDerivatives[baseimg.width - 1][0][6] = 0; //topRight
+  adjPixelsDerivatives[baseimg.width - 1][0][3] = -BIG_NUM;
+  adjPixelsDerivatives[baseimg.width - 1][baseimg.height - 1][1] = adjPixelsDerivatives[baseimg.width - 1][baseimg.height - 1][2] = 0; //bottomRight
+  adjPixelsDerivatives[baseimg.width - 1][baseimg.height - 1][5] = -BIG_NUM;
+
+  
+  i = 0;
+  
+  for(j = 1; j < baseimg.height - 1; j++) 
+  {
+      //go through first column of pixels in image
+      
+      
+      adjPixelsDerivatives[0][j][2] = adjPixelsDerivatives[0][j][6] = 0; //set derivatives of adjacent pixels along boundary to 0(3rd and 7th neighborPixel)
+      //      
+      adjPixelsDerivatives[0][j][1] = adjPixelsDerivatives[0][j][4] = adjPixelsDerivatives[0][j][7] = -BIG_NUM; //set derivatives of 2nd, 5th, and 8th neighboring pixels to -BIG_NUM
+      //
+      adjPixelsDerivatives[1][j][0] = BIG_NUM; //rightPixel has derivative BIG_NUM to adjacent pixel in first column
+
+      
+      
+      //go through last column of pixels in image
+      
+      //set derivatives of adjacent pixels along boundary to 0(3rd and 7th neighborPixel)
+      adjPixelsDerivatives[baseimg.width - 1][j][2] = adjPixelsDerivatives[baseimg.width - 1][j][6] = 0;
+      //set derivatives of 1st, 4th, 6th neighboring pixels to -BIG_NUM 
+      adjPixelsDerivatives[baseimg.width - 1][j][0] = adjPixelsDerivatives[baseimg.width - 1][j][3] = adjPixelsDerivatives[baseimg.width - 1][j][5] = -BIG_NUM;
+      
+      adjPixelsDerivatives[baseimg.width - 2][j][1] = BIG_NUM; //leftPixel has derivate BIG_NUM to adjacent pixel in last column
+  }
+  
+  j = 0;
+  
+  for(i = 1; i < baseimg.width - 1; i++)
+  {
+      //go through first row of pixels in image
+    
+      //set derivatives of adjacent pixels along boundary to 0(6th and 8th neighborPixel)
+      adjPixelsDerivatives[i][0][5] = adjPixelsDerivatives[i][0][7] = 0;
+      //set derivatives of 3rd, 4th, and 5th neighboring pixels to -BIG_NUM
+      adjPixelsDerivatives[i][0][2] = adjPixelsDerivatives[i][0][3] = adjPixelsDerivatives[i][0][4] = -BIG_NUM;
+      //
+      adjPixelsDerivatives[i][1][6] = BIG_NUM; //set derivative of 7th neighbor pixel to BIG_NUM
+      
+      //go through last row of pixels in image
+    
+      //set derivatives of adjacent pixels along boundary to 0(1st and 2nd neighborPixel)
+      adjPixelsDerivatives[i][baseimg.height - 1][0] = adjPixelsDerivatives[i][0][1] = 0;
+      //set derivatives of 6th, 7th, and 8th neighboring pixels to -BIG_NUM
+      adjPixelsDerivatives[i][baseimg.height - 1][5] = adjPixelsDerivatives[i][0][6] = adjPixelsDerivatives[i][0][7] = -BIG_NUM;
+      //
+      adjPixelsDerivatives[i][baseimg.height - 2][2] = BIG_NUM; //set derivative of 3rd neighbor pixel to BIG_NUM
+  }
+  
+  
+  
+  for (i = 1; i < baseimg.width - 1; i++){
+    for (j = 1; j < baseimg.height - 1; j++){
+
+          
+          color c = baseimg.get(i, j);
+          color c1 = baseimg.get(i, j-1); 
+          color c2 = baseimg.get(i, j+1); 
+          color c3 = baseimg.get(i+1, j);  
+          color c4 = baseimg.get(i+1, j-1);//corner
+          color c5 = baseimg.get(i+1, j+1);//corner
+          color c6 = baseimg.get(i-1, j-1);//corner
+          color c7 = baseimg.get(i-1, j);
+          color c8 = baseimg.get(i-1, j+1);//corner
+          
+          float grey = convertToGrayScale(c);
+          float grey1 = convertToGrayScale(c1);
+          float grey2 = convertToGrayScale(c2);
+          float grey3 = convertToGrayScale(c3);
+          float grey4 = convertToGrayScale(c4);
+          float grey5 = convertToGrayScale(c5);
+          float grey6 = convertToGrayScale(c6);
+          float grey7 = convertToGrayScale(c7);
+          float grey8 = convertToGrayScale(c8);
+          
+          
+          adjPixelsDerivatives[i][j][0] = (grey1 - grey) / 1.0;
+          adjPixelsDerivatives[i][j][1] = (grey2 - grey) / 1.0;
+          adjPixelsDerivatives[i][j][2] = (grey3 - grey) / 1.0;
+          adjPixelsDerivatives[i][j][3] = (grey4 - grey) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][4] = (grey5 - grey) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][5] = (grey6 - grey) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][6] = (grey7 - grey) / 1.0;
+          adjPixelsDerivatives[i][j][7]  = (grey8 - grey) / sqrt(2);//corner
+          
+          
+          //changing values
+          
+          /*
+          
+          float grey = convertToGrayScale(baseimg.get(i, j));
+          
+          adjPixelsDerivatives[i][j][0] = (convertToGrayScale(baseimg.get(i, j - 1)) - grey) / 1.0;
+          adjPixelsDerivatives[i][j][1] = (convertToGrayScale(baseimg.get(i, j + 1)) - grey) / 1.0;
+          adjPixelsDerivatives[i][j][2] = (convertToGrayScale(baseimg.get(i + 1, j)) - grey) / 1.0;
+          adjPixelsDerivatives[i][j][3] = (convertToGrayScale(baseimg.get(i + 1, j - 1)) - grey) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][4] = (convertToGrayScale(baseimg.get(i + 1, j + 1)) - grey) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][5] = (convertToGrayScale(baseimg.get(i - 1, j - 1)) - grey) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][6] = (convertToGrayScale(baseimg.get(i - 1, j)) - grey) / 1.0;
+          adjPixelsDerivatives[i][j][7] = (convertToGrayScale(baseimg.get(i - 1, j + 1)) - grey) / sqrt(2);//corner
+         
+          */
+    }
+  }
+}
+
+
+
+/*//compute gradient between two points 
+float compute_gradient(Point p1, Point p2)
+{
+    float displacement_X = p2.x - p1.x;
+    float displacement_Y = p2.y - p1.y;
+    
+    color c1 = baseimg.get((int)(p1.x), (int)(p1.y));
+    color c2 = baseimg.get((int)(p2.x), (int)(p2.y));
+    
+    float z1 = convertToGrayScale(c1);
+    float z2 = convertToGrayScale(c2);
+    
+    //println("z1 = " + z1 + ", z2 = " + z2);
+    
+    float run = sqrt(displacement_X * displacement_X + displacement_Y * displacement_Y);
+    float rise = z2 - z1;
+    float slope = rise / run;
+    return slope;
+}
+
+/*
+
+//iterate through pixelArray of baseimg and precompute gradients Array
+//i corresponds to row, j corresponds to column
+
+void precompute_pointDensity()
+{
+    float[][] gradientArray = new float[baseimg.height][baseimg.width];
+    float[][] pointDensity = new float[baseimg.height][baseimg.width];
+    
+    for(int i = 0; i < baseimg.height; i++)
+    {
+        for(int j = 0; j < baseimg.width; j++)
+        {
+             gradientArray[i][j] = compute_gradient_pixel(i, j);
+             
+             if(i != 0) pointDensity[i][j] = pointDensity[i-1][j] +
+             compute_partialderivative_X(i, j);
+             else if(j != 0) pointDensity[i][j] = pointDensity[i][j - 1] + 
+             compute_partialderivative_Y(i, j);
+             else pointDensity[i][j] = 30;//(i, j) is (0, 0)
+             
+        }
+    }
+    
+}
+
+*/
