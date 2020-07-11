@@ -1,7 +1,10 @@
 
 int lifespan;
-int numParticles = 100;
-float unit_of_time = 1.0;
+int numParticles = 999;
+float unit_of_time = 0.5;
+
+
+
 
 
 boolean showImage = true;
