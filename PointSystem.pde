@@ -61,7 +61,7 @@ class PointSystem
     }
     
     //grid system that is used to implement the AR force ccompute algorithm 
-    //if the radius of influenc[e is changed, recompute the grids for this point system
+    //if the radius of influence is changed, recompute the grids for this point system
     
    //initalize a grid system withon box.
     void intitalizeGridSystem(){
@@ -92,7 +92,7 @@ class PointSystem
         int j = (int) ((p.x - top_left_X)/ tileSideLen);
         
         if ((i >=  numGridRows) || (j >= numGridColumns)) {
-        println ("Temp error check in grid triggered" + i + " "  + j); //<>//
+        println ("Temp error check in grid triggered" + i + " "  + j); //<>// //<>//
         println ("Base image dims:" + baseimg.width + "," + baseimg.height);
         }
         
@@ -105,7 +105,7 @@ class PointSystem
         if (display_points){
           for(Point p: points)
           {
-            ellipse(p.x, p.y, 3.0, 3.0);
+             ellipse(p.x, p.y, 2.0, 2.0);
           } 
         }
         
@@ -138,60 +138,84 @@ class PointSystem
        // Compute attract or repel force
        if(d > D_repulsion){ //points attract if d > D_repulsion
              // breaking attraction into 2 parts, between d_replusion and somwhere between d_repulsion, d_attractiion
-             float d_a = (D_repulsion + D_attraction)/2.0;
+             float d_a = (D_repulsion + D_attraction) / 2.0;
              
              if (d < d_a) {
-              force_mag = 3.0*(D_repulsion -d); //attraction force
+              force_mag = 3.0 * (D_repulsion - d); //attraction force
              }
-             else {
-              force_mag =  -1.0/(d*d) + 1.0/(d_a*d_a) + 3*(D_repulsion - d_a) ;
+             else { 
+              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) + 3 * (D_repulsion - d_a) ;
              }
        }
-       else {  //points repel if d  < D_repulio        
-             force_mag = 5.0*(D_repulsion -d);
+       else {  //points repel if d  < D_repulsion        
+             force_mag = 5.0 * (D_repulsion -d);
        }
     }
-    PVector force = displ.normalize().mult(force_mag);
+    
+    /*
+    println("force_mag: " + force_mag);
+    
+    println("d = " + d);
+    println("displacement vector: " + displ);
+    println("displacement unit vector: " + displ.normalize());
+    println("displacement vector has magnitude force_mag" + displ.mult(force_mag));
+    println();
+    */
+    
+    displ.normalize();
+    displ.mult(force_mag);
+    PVector force = new PVector(displ.x, displ.y);//problem
+    //println("forcehi = " + force); 
     return (force); //convert force to vector
    
   }
    
    // given two tiles find the forces between points between them
    void computeAROnPointsBetweenTwoTiles(Tile tile, Tile neighbor_tile){
-       PVector force;
        
+       //println("Tile tile: " + tile);
+       
+       PVector force;
+
        for(int i = 0; i < tile.pointList.size(); i++)
        {
+
            int k = (tile == neighbor_tile)? (i+1): 0; // if within same tile then special case of j index
 
+            //println("Computed AR forces! tile" + k + neighbor_tile.pointList.size());
+
            for(int j = k; j < neighbor_tile.pointList.size(); j++)
-                   {
+           {
+
                        //get two points and interact with each other
                        Point p1 = tile.pointList.get(i);
                        Point p2 = neighbor_tile.pointList.get(j);
-                       
-                       //compute force between points
+ 
+                        //compute force between points
                        force = computeAR_forceBetweenTwoPoints(p1, p2);
                        
-                       //add force to particles, since displacement is from p2 to p1 particles experience force in opposite directions
-                       p1.netForce.add(force);
-                       //print (p1.netForce.x + " AR " + p1.netForce.y);
+                       //println (force.x + force.y);
+                       
+                       p1.AdjustandAddARForce(force);   //adjust the force based on gradient of image pixel at point location p1 and  accumulate force in point p1
 
-                       p2.netForce.add(force.mult(-1));
-                      
+                       p2.AdjustandAddARForce(PVector.mult(force, -1.0));   //adjust the force based on gradient of image pixel at point location p1 and  accumulate force in point p1
+
            }
        }
    }
    
-   // while computign AR foces, lets consider a tile and its neighbors
+   
+   
+   
+   // while computing AR foces, lets consider a tile and its neighbors
    void computeARforces() {
  
        Tile tile, neighbor_tile;
-       
+       println("computeARforces");
        //Apply the AR type forces which are determined by other points
        // visit the tiles from top left to bottom right each row at a time
        // and consider self, and neigbors to the right, and three below it
-       
+
        for (int tile_i = 0; tile_i < numGridRows; tile_i++){
          for (int tile_j = 0; tile_j < numGridColumns; tile_j++){
            
@@ -237,7 +261,22 @@ class PointSystem
     void computeNetForceandNewPositionofPoints()
     {
       // apply AR forces
-      if (has_attractionrepulsion) computeARforces();
+      println("Compute Net Forces and New Positions Of Points");
+      if (has_attractionrepulsion) computeARforces();     
+      
+      /*
+      //print points' netForces in pointSystem
+      println("print points' netForces in pointSystem after computeARforces");
+      println();
+      
+      int numPoint = 1;
+      
+      for(Point p: points)
+      {
+          println("PointIndex: " + numPoint + ", NetForce: " + "(" + p.netForce.x + ", " + p.netForce.y + ")"); 
+          numPoint++;
+      }
+      */
       
       //apply forces which do not depend on other points
       for(Point p: points){
@@ -255,6 +294,7 @@ class PointSystem
        
        //compute new positions and map to tile
         for(Point p: points){
+          //println(p.netForce.x + " " + p.netForce.y);
           p.apply_transformation();
           InsertPointIntoTileItisOn(p);
           // also reset the netforce on a point for next iteration

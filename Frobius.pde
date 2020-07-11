@@ -1,9 +1,14 @@
 
 int lifespan;
 int numParticles = 999;
-float unit_of_time = 0.5;
+float unit_of_time = 1.0;
+int BIG_NUM = 9999;
+
+int HEIGHT = (int)displayHeight;
+int WIDTH = (int)displayWidth;
 
 
+float[][][] adjPixelsDerivatives;
 
 
 
@@ -42,7 +47,7 @@ void draw() {
       if(showImage) 
       {
           image(baseimg, imgTopLeftCorner_X, 0);  
-          filter(GRAY); 
+          //filter(GRAY); 
       }
        
       if(showParticleSystem)
@@ -78,9 +83,13 @@ void draw() {
     textAlign(CENTER);
     text("First load an image. Then you can click, drag, release to create a bounding box inside image. \n Depending on whether you selected an emitter or a Point system, one will be generated inside the bounding box.\n You can repeat to create multiple systems and mix and match.\n You can also just click anywhere inside the image to create a system covering the full image.", GUIWidth + (width-GUIWidth)/2, height/2);
 
-}
+  }
     
 }
+
+
+
+
 
     
     
