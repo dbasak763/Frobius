@@ -8,7 +8,7 @@ int     reduceFullScreenBy = 20; // control sketch window W,H are fullscreen min
 
 
 //to be removed in finalcleanup
-boolean loadHardcodedImage = false; //to avoid debugging an issue seen intermittently with Widows file selector
+boolean loadHardcodedImage = true; //to avoid debugging an issue seen intermittently with Widows file selector
 //END OF GUI CONTROLS
 
 
