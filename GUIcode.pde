@@ -47,7 +47,6 @@ void setup() {
   
   //to avoid debugging an issue seen intermittently with Widows file selector
   if (loadHardcodedImage){
-    baseimg = loadImage("C:\\Users\\rajrupa\\Desktop\\vangoghpainting.jpg");
     
     OperationsAfterBaseImageLoaded();
   }
@@ -108,7 +107,6 @@ void setupGUIControls (PApplet parent) {
        .setPosition((int)(130*guiXscale),(int)(110*guiYscale))
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
-       .setRange(10,60)
        .setValue(30)
        .moveTo(g1)
        .plugTo(parent,"framerate")

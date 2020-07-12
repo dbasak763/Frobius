@@ -96,7 +96,6 @@ class Point
    void AdjustandAddARForce(PVector ARforce){
          int index = MapVectorToGradientIndex(ARforce);
          
-         //println("adjPixelsDerivatives[i] " + (int)(this.x - imgTopLeftCorner_X) + " adjPixelsDerivatives[j] " + (int)(this.y));  
          
          float derivative = adjPixelsDerivatives[(int)(this.x - imgTopLeftCorner_X)][(int)this.y][index];
         
