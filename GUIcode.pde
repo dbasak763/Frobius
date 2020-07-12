@@ -47,6 +47,8 @@ void setup() {
   
   //to avoid debugging an issue seen intermittently with Widows file selector
   if (loadHardcodedImage){
+    //baseimg = loadImage("C:\\Users\\rajrupa\\Desktop\\vangoghpainting.jpg");
+    baseimg = loadImage("C:\\Users\\rajrupa\\Desktop\\chess-board-black-and-white.jpg");
     
     OperationsAfterBaseImageLoaded();
   }
@@ -107,6 +109,7 @@ void setupGUIControls (PApplet parent) {
        .setPosition((int)(130*guiXscale),(int)(110*guiYscale))
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
+       .setRange(1,60)
        .setValue(30)
        .moveTo(g1)
        .plugTo(parent,"framerate")
@@ -419,6 +422,7 @@ void controlEvent(ControlEvent theEvent) {
         D_attraction = (float) cp5.getController("AttractRepelRadius").getValue();
         D_repulsion = D_attraction/4.0;
         println ("AttractRepelRadius:" + D_attraction);
+        //for(PointSystem ps:  spirals) ps.intitalizeGridSystem();
   }
   else if (theEvent.isFrom((Slider) cp5.getController("SquareBoxDim"))) {
         emitter_squarewall_len = (int) cp5.getController("SquareBoxDim").getValue();
@@ -743,7 +747,7 @@ void compute_PartialDerivativesOfPixelWRTAdjacentPixels()
   }
 }
 
-
+//not using compute_gradient
 
 /*//compute gradient between two points 
 float compute_gradient(Point p1, Point p2)
@@ -764,6 +768,9 @@ float compute_gradient(Point p1, Point p2)
     float slope = rise / run;
     return slope;
 }
+
+
+//not using precompute_density
 
 /*
 
