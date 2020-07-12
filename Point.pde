@@ -7,7 +7,7 @@ class Point
    PVector randDirection;
    PVector netForce;
    PVector velocity;
-//   int Max_Rebirth_Distance_X, Max_Rebirth_Distance_Y;
+   int Max_Rebirth_Distance_X, Max_Rebirth_Distance_Y;
    
    PointSystem parentps; //tracks the parent point system to which this point belongs
    
@@ -19,8 +19,8 @@ class Point
 
       parentps = parent;
       
-      //Max_Rebirth_Distance_X = (int)(parentps.bottom_right_X - parentps.top_left_X);
-      //Max_Rebirth_Distance_Y = (int)(parentps.bottom_right_Y - parentps.top_left_Y);
+      Max_Rebirth_Distance_X = 10;//(int)(parentps.bottom_right_X - parentps.top_left_X);
+      Max_Rebirth_Distance_Y = 10;//(int)(parentps.bottom_right_Y - parentps.top_left_Y);
       
       randDirection = new PVector(0, 0);
       netForce = new PVector(0, 0);
@@ -70,7 +70,7 @@ class Point
       y = constrain(y, parentps.top_left_Y, parentps.bottom_right_Y); //contrain the point within the bounding box of the point system
       
       
-/*      //move point away from boundaries to prevent clustering, doesn't work properly
+      //move point away from boundaries to prevent clustering, doesn't work properly
       if(x == parentps.top_left_X)
       {
           x += random(0, Max_Rebirth_Distance_X);
@@ -88,7 +88,7 @@ class Point
       {
          y -= random(0, Max_Rebirth_Distance_Y); 
       }
- */
+ 
 
    }
    
@@ -96,7 +96,7 @@ class Point
    void AdjustandAddARForce(PVector ARforce){
          int index = MapVectorToGradientIndex(ARforce);
          
-         println("adjPixelsDerivatives[i] " + (int)(this.x - imgTopLeftCorner_X) + " adjPixelsDerivatives[j] " + (int)(this.y));  
+         //println("AdjustandAddARForce P.x:" + this.x + " ImgTL:" +  imgTopLeftCorner_X + " P.y:" + (int) this.y + " B.w: "+ baseimg.width + " B.h " + baseimg.height + " Box :X[" + parentps.top_left_X + ", " + parentps.bottom_right_X + " Box :Y[" + parentps.top_left_Y + ", " + parentps.bottom_right_Y);  
          
          float derivative = adjPixelsDerivatives[(int)(this.x - imgTopLeftCorner_X)][(int)this.y][index];
         
@@ -104,10 +104,10 @@ class Point
          //if derivative > 0, so scaleFactor < 1
          //else scaleFactor > 1, f(x) = (x - 1) ^ (1/3)
       
-         float scaleFactor = (float)Math.cbrt(derivative - 1) + 2.0;
+         float scaleFactor = ((float)Math.cbrt(derivative - 1) + 2.0)/10.0;
          
          //println("scaleFactor = " + scaleFactor);
-    
+         netForce.add(ARforce);
          netForce.add(PVector.mult(ARforce,scaleFactor));
     }
                         

@@ -61,7 +61,7 @@ class PointSystem
     }
     
     //grid system that is used to implement the AR force ccompute algorithm 
-    //if the radius of influenc[e is changed, recompute the grids for this point system
+    //if the radius of influence is changed, recompute the grids for this point system
     
    //initalize a grid system withon box.
     void intitalizeGridSystem(){
@@ -92,7 +92,7 @@ class PointSystem
         int j = (int) ((p.x - top_left_X)/ tileSideLen);
         
         if ((i >=  numGridRows) || (j >= numGridColumns)) {
-        println ("Temp error check in grid triggered" + i + " "  + j); //<>//
+        println ("Temp error check in grid triggered" + i + " "  + j); //<>// //<>//
         println ("Base image dims:" + baseimg.width + "," + baseimg.height);
         }
         
@@ -144,12 +144,13 @@ class PointSystem
               force_mag = 3.0 * (D_repulsion - d); //attraction force
              }
              else { 
-              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) + 3 * (D_repulsion - d_a) ;
+              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) + 3 * (D_repulsion - d_a) ; 
              }
        }
        else {  //points repel if d  < D_repulsion        
              force_mag = 5.0 * (D_repulsion -d);
        }
+       force_mag /= 20.0;
     }
     
     /*
