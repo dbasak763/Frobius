@@ -80,10 +80,10 @@ class Particle {
     partShape.noStroke();
     //part.texture(sprite);
     partShape.normal(0, 0, 1);
-    partShape.vertex(-partSize/2, -partSize/2);//, imgTopLeftCorner_X, 0);
-    partShape.vertex(+partSize/2, -partSize/2);//, imgTopLeftCorner_X + baseimg.width, 0);
-    partShape.vertex(+partSize/2, +partSize/2);//, imgTopLeftCorner_X + baseimg.width, baseimg.height);
-    partShape.vertex(-partSize/2, +partSize/2);//, imgTopLeftCorner_X, baseimg.height);
+    partShape.vertex(-partSize/2, -partSize/2);
+    partShape.vertex(+partSize/2, -partSize/2);
+    partShape.vertex(+partSize/2, +partSize/2);
+    partShape.vertex(-partSize/2, +partSize/2);
     partShape.endShape();
     
     particle_location = new Location();
@@ -134,7 +134,7 @@ class Particle {
   
 
   public void update() {
-    partLifespan -= 1;//update lifespan //<>// //<>//
+    partLifespan -= 1;//update lifespan //<>// //<>// //<>//
     
     net_force = new PVector(0, 0);//want to find net force on 
     //particle at certain time, always initialize to null
@@ -227,7 +227,7 @@ public class ParticleSystem {
     particles = new ArrayList<Particle>();
     particleShape = createShape(PShape.GROUP);
     
-    println("In ps constructor n = " + num_of_particles); //<>//
+    println("In ps constructor n = " + num_of_particles); //<>// //<>//
     
     for (int i = 0; i < num_of_particles; i++) {
       Particle p = new Particle(this);
@@ -262,7 +262,7 @@ public class ParticleSystem {
   void setEmitter() {
 
     for (Particle p : particles) {
-      if (p.isDead()) { //<>//
+      if (p.isDead()) { //<>// //<>//
         //instead of respawning at some random location on the image screen, 
         // spawn the particle within user specified box wall region
         Location l = getLocationInsideSquareBox(top_left_X, top_left_Y, bottom_right_X, bottom_right_Y);

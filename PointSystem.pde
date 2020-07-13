@@ -24,28 +24,29 @@ class PointSystem
 
     PointSystem (float topLeft_X, float topLeft_Y, float bottomRight_X, float bottomRight_Y)
     {       
-      //currentX and currentY are initially set to the x- and y- locations 
-       //of the center of the spiral maze.
-       println ("Bounding box: " + topLeft_X + " " + topLeft_Y  + " " +  bottomRight_X + " " + bottomRight_Y + baseimg.width + baseimg.height);
-       
-       //box region that user picks on image 
+             
+       //box region that user picks on image, the box includes the 4 points, we do not have to substract 1 from anything as in 0 + L -1 for something tha is L long
+       //Therefore, width of box = bottomRight_X - topLeft_X + 1; height of box = bottomRight_Y - topLeft_Y + 1; 
        top_left_X = topLeft_X;
        top_left_Y = topLeft_Y;
        bottom_right_X =  bottomRight_X;
        bottom_right_Y = bottomRight_Y;
        
+       println ("Bounding box: " + top_left_X + " " + top_left_Y  + " " +  bottom_right_X + " " + bottom_right_Y + "Base image" + baseimg.width + "(W) " + baseimg.height + "(H)");
+
        
-       current_X = (topLeft_X + bottomRight_X)/2;
-       current_Y = (topLeft_Y + bottomRight_Y)/2;
+       current_X = (top_left_X + bottom_right_X)/2; //currentX and currentY are set to the x and y locations 
+       current_Y = (top_left_Y + bottom_right_Y)/2; //of the center of the initial spiral maze.
+       
        
 
-       //distanceXbetweenInitialSpiralArms = 100; // in initial spiral arrangement of points in Point system
+       // for an initial spiral arrangement of points in Point system
        int max_num_spiral_half_twists = (int) sqrt (numParticles);
-       distanceX = max (10, (int) ((bottomRight_X - topLeft_X)/max_num_spiral_half_twists));
+       distanceX = max (10, (int) ((bottomRight_X - topLeft_X + 1)/max_num_spiral_half_twists));
 
        //proportions of width and height of spiral must match that of image
        //can't multiply n by (baseimg.height/baseimg.width)
-       distanceY = (int) ((distanceX * (bottomRight_Y - topLeft_Y)) / (bottomRight_X - topLeft_X));
+       distanceY = (int) ((distanceX * (bottomRight_Y - topLeft_Y + 1)) / (bottomRight_X - topLeft_X + 1));
 
 
        points = new ArrayList<Point>();
@@ -67,8 +68,8 @@ class PointSystem
     void intitalizeGridSystem(){
       
        tileSideLen = D_attraction*2; //compute new tile side length
-       numGridRows =  ceil((bottom_right_Y - top_left_Y)/tileSideLen);
-       numGridColumns = ceil((bottom_right_X -  top_left_X)/tileSideLen);
+       numGridRows =  ceil((bottom_right_Y - top_left_Y + 1)/tileSideLen); //box width divided by tileside
+       numGridColumns = ceil((bottom_right_X -  top_left_X + 1)/tileSideLen); //box height divided by tileside
  
        println(" Init grid [" + numGridRows + "," + numGridColumns + "]"); 
        
@@ -92,7 +93,7 @@ class PointSystem
         int j = (int) ((p.x - top_left_X)/ tileSideLen);
         
         if ((i >=  numGridRows) || (j >= numGridColumns)) {
-        println ("Temp error check in grid triggered" + i + " "  + j); //<>// //<>//
+        println ("Temp error check in grid triggered" + i + " "  + j); //<>// //<>// //<>//
         println ("Base image dims:" + baseimg.width + "," + baseimg.height);
         }
         
@@ -101,7 +102,7 @@ class PointSystem
     
     //Display spiral lines and points to image screen
     void display()
-    {
+    {        
         if (display_points){
           for(Point p: points)
           {
@@ -127,47 +128,50 @@ class PointSystem
    {
     float force_mag = 0.0;
     
-    float displacement_x = p2.x - p1.x;
-    float displacement_y = p2.y - p1.y;
-                       
-    PVector displ = new PVector(displacement_x, displacement_y);
-    float d = displ.mag();
-
-    // only compute if d  is less than d_attraction
-    if(d < D_attraction){
-       // Compute attract or repel force
-       if(d > D_repulsion){ //points attract if d > D_repulsion
+    int displacement_x = (int) p2.x - (int) p1.x;
+    int displacement_y = (int) p2.y - (int) p1.y;
+   
+    PVector vec = new PVector(displacement_x, displacement_y);
+    float d = vec.mag();
+          
+          
+    //check if d is 0, then just compute a large repulsion, avoids division by zero cases later
+    if (displacement_x == 0 && displacement_y == 0) {
+      force_mag = 5.0 * (D_repulsion);
+    }
+    else {
+      
+      // |---------|-----|--------------|    we have to come up with a continuous function that is positive (repulsive) below D_rep, 
+      // 0      D_rep   d_a           D_att  and negative (attractive) above D_rep, but has minima at some d_a before heading to 0 at D_attr
+ 
+      // only compute if d  is less than d_attraction
+      if (d < D_attraction){
+         // Compute attract or repel force
+         if(d > D_repulsion){ //points attract if d > D_repulsion
              // breaking attraction into 2 parts, between d_replusion and somwhere between d_repulsion, d_attractiion
+             // because 
              float d_a = (D_repulsion + D_attraction) / 2.0;
              
-             if (d < d_a) {
-              force_mag = 3.0 * (D_repulsion - d); //attraction force
+             if (d <= d_a) {
+              force_mag = -3.0 * (d - D_repulsion); //attraction force
              }
-             else { 
-              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) + 3 * (D_repulsion - d_a) ; 
+             else {
+               
+              force_mag =  -1.0 / (d*d) + 1.0 / (d_a*d_a) - 3 * (d_a - D_repulsion) ; 
              }
-       }
-       else {  //points repel if d  < D_repulsion        
-             force_mag = 5.0 * (D_repulsion -d);
-       }
-       force_mag /= 20.0;
+          }
+          else {  //points repel if d  <= D_repulsion        
+                 force_mag = 5.0 * (D_repulsion -d);
+          }
+      }
     }
     
-    /*
-    println("force_mag: " + force_mag);
-    
-    println("d = " + d);
-    println("displacement vector: " + displ);
-    println("displacement unit vector: " + displ.normalize());
-    println("displacement vector has magnitude force_mag" + displ.mult(force_mag));
-    println();
-    */
-    
-    displ.normalize();
-    displ.mult(force_mag);
-    PVector force = new PVector(displ.x, displ.y);//problem
-    //println("forcehi = " + force); 
-    return (force); //convert force to vector
+    force_mag /= 20.0;
+ 
+    vec.normalize();
+    vec.mult(force_mag);
+    if (Float.isNaN(vec.x) || Float.isNaN(vec.y)) println("AR force = " + vec.x + "," + vec.y); 
+    return (vec); //return AR force vector from P1 to P2
    
   }
    
@@ -194,9 +198,7 @@ class PointSystem
  
                         //compute force between points
                        force = computeAR_forceBetweenTwoPoints(p1, p2);
-                       
-                       //println (force.x + force.y);
-                       
+                                              
                        p1.AdjustandAddARForce(force);   //adjust the force based on gradient of image pixel at point location p1 and  accumulate force in point p1
 
                        p2.AdjustandAddARForce(PVector.mult(force, -1.0));   //adjust the force based on gradient of image pixel at point location p1 and  accumulate force in point p1
@@ -212,7 +214,7 @@ class PointSystem
    void computeARforces() {
  
        Tile tile, neighbor_tile;
-       println("computeARforces");
+
        //Apply the AR type forces which are determined by other points
        // visit the tiles from top left to bottom right each row at a time
        // and consider self, and neigbors to the right, and three below it
@@ -262,28 +264,13 @@ class PointSystem
     void computeNetForceandNewPositionofPoints()
     {
       // apply AR forces
-      println("Compute Net Forces and New Positions Of Points");
+      //println("Compute Net Forces and New Positions Of Points");
       if (has_attractionrepulsion) computeARforces();     
-      
-      /*
-      //print points' netForces in pointSystem
-      println("print points' netForces in pointSystem after computeARforces");
-      println();
-      
-      int numPoint = 1;
-      
-      for(Point p: points)
-      {
-          println("PointIndex: " + numPoint + ", NetForce: " + "(" + p.netForce.x + ", " + p.netForce.y + ")"); 
-          numPoint++;
-      }
-      */
       
       //apply forces which do not depend on other points
       for(Point p: points){
           if(coeff_friction > 0.0) p.apply_friction();
           if(has_brownianmotion) p.apply_brownianmotion();
-          //p.apply_constrain();
        }
        
        // cleat the points lists in tiles from last iteration and insert updated points
@@ -298,8 +285,6 @@ class PointSystem
           //println(p.netForce.x + " " + p.netForce.y);
           p.apply_transformation();
           InsertPointIntoTileItisOn(p);
-          // also reset the netforce on a point for next iteration
-          p.netForce.set(0.0,0.0);
         }
         
       
@@ -327,7 +312,7 @@ class PointSystem
     boolean moveL(int num)
      {
        for(int i = 0; i<num; i++){
-         if((current_X - distanceX) > top_left_X)
+         if((current_X - distanceX) >= top_left_X)
          {
            current_X -= distanceX;
            Point p = new Point(current_X, current_Y, this);
@@ -342,7 +327,7 @@ class PointSystem
      boolean moveR(int num)
      {
        for(int i = 0; i<num; i++) {
-         if((current_X + distanceX) < bottom_right_X)
+         if((current_X + distanceX) <= bottom_right_X)
          {
            current_X += distanceX;
            Point p = new Point(current_X, current_Y, this);
@@ -358,7 +343,7 @@ class PointSystem
      boolean moveU(int num)
      {
        for(int i = 0; i<num; i++){
-         if((current_Y - distanceY) > top_left_Y)
+         if((current_Y - distanceY) >= top_left_Y)
          {
            current_Y -= distanceY;
            Point p = new Point(current_X, current_Y, this);
@@ -373,7 +358,7 @@ class PointSystem
      boolean moveD(int num)
      {
        for(int i = 0; i<num; i++) {
-         if((current_Y + distanceY) < bottom_right_Y)
+         if((current_Y + distanceY) <= bottom_right_Y)
          {
            current_Y += distanceY;
            Point p = new Point(current_X, current_Y, this);

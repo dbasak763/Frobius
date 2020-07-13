@@ -1,16 +1,8 @@
 
 int lifespan;
-int numParticles = 999;
+int numParticles = 0;
 float unit_of_time = 1.0;
-int BIG_NUM = 9999;
-
-int HEIGHT = (int)displayHeight;
-int WIDTH = (int)displayWidth;
-
-
-float[][][] adjPixelsDerivatives;
-
-
+boolean debug = false;
 
 boolean showImage = true;
 boolean createParticleSystem = false; // create Particle System
@@ -28,6 +20,12 @@ float   coeff_friction = 0.25;//coefficient of friction
 boolean has_attractionrepulsion = false;
 float   D_attraction = 0.0; //distance outside which points dont influence each other
 float   D_repulsion = 0.0;  //distance inside which points repel each other, set to 25% of attract
+float[][][] adjPixelsDerivatives;
+int[][]   inertia;
+int[][]   grayScaleImage;
+int inertiaFactor = 10;  //must be 1 or higher
+
+
 float gravity;
 
 
@@ -35,13 +33,8 @@ void draw() {
   background(220);
   strokeWeight(4);
   
-  if (!SEPARATE_GUI_WINDOW) drawGUIBackground();
+  drawGUIBackground();
   
-  emitter_squarewall_len = (int) cp5.getController("SquareBoxDim").getValue();
-  //numParticles = (int) cp5.getController("numParticles").getValue();
-  lifespan = (int) cp5.getController("lifespan").getValue();
-  gravity = cp5.getController("gravity").getValue();
- 
   if (baseimg != null){
     
       if(showImage) 

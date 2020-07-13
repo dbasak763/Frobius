@@ -3,14 +3,13 @@ import controlP5.*;
 ControlP5 cp5;
 PImage baseimg;     // base image that is transformed
 
-PWindow win;        // This class used only if GUI is spearate window
 Accordion accordion;
 int   imgTopLeftCorner_X;  // computed based on GUI is part of sketch window and size of scaled img
 float guiXscale,  guiYscale;
 
 color c = color(0, 160, 100);  // not related to program, can be removed
-CheckBox emitterCheckbox, displayCheckbox;
-RadioButton playpauseRadio, showhideRadio;
+CheckBox forceCheckBox, displayCheckbox;
+RadioButton playpauseRadio, showhideRadio, particlePointRadio;
 
 //variables to input from screen a start & end points (x,y) of a box from user to bound a emitter or particle system
 float new_box_startx, new_box_starty, new_box_endx, new_box_endy; 
@@ -37,14 +36,11 @@ void setup() {
   noStroke();
   frameRate(30);
   
-  if (!SEPARATE_GUI_WINDOW){
-      cp5 = new ControlP5(this);
-      setupGUIControls(this);
-  }
-  else {
-       win = new PWindow(this);
-  }
   
+  cp5 = new ControlP5(this);
+  setupGUIControls(this);
+  
+
   hint(DISABLE_DEPTH_MASK);
   
   //to avoid debugging an issue seen intermittently with Widows file selector
@@ -65,7 +61,7 @@ void drawGUIBackground(){
 
 
 void setupGUIControls (PApplet parent) {
-   //<>//
+  
     PFont GUIfont = createFont ("verdana", labelsize,false);
     ControlFont font1 = new ControlFont(GUIfont,labelsize);
        //<>//
@@ -84,7 +80,7 @@ void setupGUIControls (PApplet parent) {
        .plugTo(parent,"LoadNewImage")
        ;
   
-      showhideRadio = cp5.addRadioButton("hideimage")
+      showhideRadio = cp5.addRadioButton("showhideimageradio")
        .setPosition((int)(10*guiXscale),(int)(95*guiYscale))
        .setItemWidth((int)(40*guiXscale))
        .setItemHeight((int)(40*guiYscale))
@@ -93,6 +89,7 @@ void setupGUIControls (PApplet parent) {
        .setColorLabel(color(255))
        .activate(0)
        .moveTo(g1)
+       .plugTo(parent,"showhideimageradio")
        ;
 
      playpauseRadio = cp5.addRadioButton("playpauseradio")
@@ -104,18 +101,22 @@ void setupGUIControls (PApplet parent) {
        .setColorLabel(color(255))
        .activate(0)
        .moveTo(g1)
+       .plugTo(parent, "playpauseradio");
        ;   
 
-    cp5.addSlider("framerate")
+    cp5.addSlider("myframerate")
        .setPosition((int)(130*guiXscale),(int)(110*guiYscale))
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
+       .setLabel("FrameRate")
        .setRange(1,60)
        .setValue(30)
        .moveTo(g1)
-       .plugTo(parent,"framerate")
+       //.plugTo(parent,"framerate")
+       .plugTo(parent,"controlEvent")
        ;
-
+       
+    cp5.addFrameRate().setInterval(10).setPosition((int)(130*guiXscale),(int)(95*guiYscale)).moveTo(g1);
          
     Group g2 = cp5.addGroup("Emitter & Particle System Knobs")
                   .setBackgroundColor(color(0, 64))
@@ -123,7 +124,7 @@ void setupGUIControls (PApplet parent) {
                   .setBackgroundHeight((int)(300*guiYscale))
                   ;
 
-    cp5.addRadioButton("particle_points_radio")
+    particlePointRadio = cp5.addRadioButton("particle_points_radio")
      .setPosition((int)(10*guiXscale),(int)(20*guiYscale))
      .setItemWidth((int)(30*guiXscale))
      .setItemHeight((int)(30*guiYscale))
@@ -134,6 +135,7 @@ void setupGUIControls (PApplet parent) {
      .activate(1)
      .moveTo(g2)
      .plugTo(parent,"particle_points_radio")
+     //.plugTo(parent,"controlEvent")
      ;
      
     cp5.addBang("reset")
@@ -154,6 +156,7 @@ void setupGUIControls (PApplet parent) {
       .addItem("Display Points", 1)
       .addItem("Display Lines", 1)
       .moveTo(g2)
+      .plugTo(parent,"controlEvent")
       ;
     displayCheckbox.activateAll();
     
@@ -164,6 +167,7 @@ void setupGUIControls (PApplet parent) {
      .setRange(0.0,4.0)
      .setValue(2.0)
      .moveTo(g2)
+     .plugTo(parent,"controlEvent")
     ;
     
    cp5.addSlider("Friction Coeff")
@@ -173,6 +177,7 @@ void setupGUIControls (PApplet parent) {
      .setRange(0.0,1.0)
      .setValue(0.0)
      .moveTo(g2)
+     .plugTo(parent,"controlEvent")
     ;            
        
    cp5.addSlider("AttractRepelRadius")
@@ -183,6 +188,8 @@ void setupGUIControls (PApplet parent) {
      .setRange(0.0, 200.0)
      .setValue(100.0)
      .moveTo(g2)
+     .plugTo(parent,"controlEvent")
+
     ;                      
              
     cp5.addSlider("numParticles")
@@ -193,6 +200,7 @@ void setupGUIControls (PApplet parent) {
        .setRange(10,10000)
        .setValue(1000)
        .moveTo(g2)
+       .plugTo(parent,"controlEvent")
        ;             
     Group g3 = cp5.addGroup("Force Knobs")
                   .setFont(font1)
@@ -200,7 +208,7 @@ void setupGUIControls (PApplet parent) {
                   .setBackgroundHeight((int)(150*guiYscale))
                   ;
        
-    emitterCheckbox = cp5.addCheckBox("checkBox")
+    forceCheckBox = cp5.addCheckBox("checkBox")
                 .setPosition((int)(10*guiXscale), (int)(10*guiYscale))
                 .setSize((int)(40*guiXscale), (int)(40*guiYscale))
                 .setItemsPerRow(2)
@@ -210,6 +218,7 @@ void setupGUIControls (PApplet parent) {
                 .addItem("Attract Repel", 1)
                 .addItem("Fairing (tbd)",2)
                 .moveTo(g3)
+                .plugTo(parent,"controlEvent")
                 ;
                
     // group number 3, Emitter
@@ -227,6 +236,7 @@ void setupGUIControls (PApplet parent) {
        .setRange(10,255)
        .setValue(25)
        .moveTo(g4)
+       .plugTo(parent,"controlEvent")
        ;
        
        
@@ -237,6 +247,7 @@ void setupGUIControls (PApplet parent) {
        .setRange(0,1)
        .setValue(0)
        .moveTo(g4)
+       .plugTo(parent,"controlEvent")
        ;
        
        cp5.addSlider("SquareBoxDim")
@@ -246,6 +257,8 @@ void setupGUIControls (PApplet parent) {
        .setRange(50, 1000)
        .setValue(50)
        .moveTo(g4)
+       .plugTo(parent,"controlEvent")
+
        ;
        
 
@@ -292,32 +305,51 @@ void particle_points_radio(int theC) {
   switch(theC) {
     case(0): createPointSystem = false;
              createParticleSystem = true;
-             print("emitter mode");
+             println("Set emitter mode");
              break;
     case(1): createPointSystem = true;
              createParticleSystem = false;
-             print("pointSystems mode");
+             println("Set pointSystems mode");
              break;
   }
-} 
-
-void shuffle() {
-  c = color(random(255),random(255),random(255),random(128,255));
 }
+
+void showhideimageradio(int theC) { 
+     println("showhide radio control:" + showhideRadio.getItem(0).getState());
+    
+    if ( showhideRadio.getItem(0).getState()) {
+      showImage = true;
+      println("show");
+
+    }
+    else {
+      showImage = false;
+      println("hide");
+    }
+}
+
+void playpauseradio(int theC) { 
+    println("playpause radio control:" + playpauseRadio.getItem(0).getState());
+    
+    if ( playpauseRadio.getItem(0).getState()) {
+      loop();
+      println("play");
+      //playpauseRadio.getItem(0).setImage(buttonimgs[1]);
+
+    }
+    else {
+      noLoop();
+      println("pause");
+      //playpauseRadio.getItem(0).setImage(buttonimgs[0]);
+
+   }
+}
+
 
 void LoadNewImage() {
   selectInput("Select a file to process:", "fileSelected");
 }
 
-void saveTransform() {
-  selectInput("Select a file to process:", "fileSelected");
-}
-
-
-void framerate (){
-  frameRate((int) cp5.getController("framerate").getValue());
-  println("framerate " + frameRate);
-}
 
 void fileSelected(File selection) {
   if (selection == null) {
@@ -337,7 +369,7 @@ void OperationsAfterBaseImageLoaded(){
     
     float widthScaleFactor, heightScaleFactor, guiwidth=0.0;
     
-    if (!SEPARATE_GUI_WINDOW) guiwidth = GUIWidth; //take out GUI width from skectch area
+    guiwidth = GUIWidth; //take out GUI width from skectch area
 
     heightScaleFactor = (float) height/ (float)baseimg.height;
     widthScaleFactor  = (float)(width-guiwidth)/ (float) baseimg.width;
@@ -346,8 +378,8 @@ void OperationsAfterBaseImageLoaded(){
 
     int   imgWidth,imgHeight;  // computed by the scaled image dimensions of loaded image
 
-    imgWidth = (int) (scaleFactor * baseimg.width - 1)  ;
-    imgHeight = (int) (scaleFactor * baseimg.height -1) ;
+    imgWidth = (int) (scaleFactor * baseimg.width)  ;
+    imgHeight = (int) (scaleFactor * baseimg.height) ;
     
     baseimg.resize(imgWidth, imgHeight);
     
@@ -356,18 +388,18 @@ void OperationsAfterBaseImageLoaded(){
     
     //println("baseimg.width = " + baseimg.width + ", baseimg.height = " + baseimg.height);
     
-    //Update adjpixel_values[][][8] array
-    adjPixelsDerivatives =  new float[baseimg.width][baseimg.height][8];
-    compute_PartialDerivativesOfPixelWRTAdjacentPixels();
+    computeGrayScaleBaseImagePixels();
+    computeInertiaOfBaseImagePixels();
+    compute_PartialDerivativesOfBaseImagePixelWRTAdjacentPixels();
 }
 
 
 void controlEvent(ControlEvent theEvent) {
   
-  if (theEvent.isFrom(emitterCheckbox)) {
+  if (theEvent.isFrom(forceCheckBox)) {
   
-    for (int i=0;i<emitterCheckbox.getArrayValue().length;i++) {
-      int n = (int)emitterCheckbox.getArrayValue()[i];
+    for (int i=0;i<forceCheckBox.getArrayValue().length;i++) {
+      int n = (int)forceCheckBox.getArrayValue()[i];
       
       switch (i) {
             case 0:  if (n==1) has_brownianmotion = true;
@@ -389,7 +421,6 @@ void controlEvent(ControlEvent theEvent) {
       }
     }
   }
- 
   else if (theEvent.isFrom((Slider) cp5.getController("numParticles"))) { 
         numParticles = (int) cp5.getController("numParticles").getValue();
         println ("changing numParticles event:" + numParticles);
@@ -400,6 +431,10 @@ void controlEvent(ControlEvent theEvent) {
               ps.change_num_of_particles(numParticles);
           }
         }
+  }
+  else if (theEvent.isFrom((Slider) cp5.getController("myframerate"))) { 
+      frameRate((int) cp5.getController("myframerate").getValue());
+      println("framerate (set) " + (int) cp5.getController("myframerate").getValue() + " (actual) " + frameRate);
   }
   else if (theEvent.isFrom((Slider) cp5.getController("lifespan"))) { 
         lifespan = (int) cp5.getController("lifespan").getValue();
@@ -430,6 +465,11 @@ void controlEvent(ControlEvent theEvent) {
         println ("changing emitter square len to:" + emitter_squarewall_len);
 
   }
+  else if (theEvent.isFrom((Slider) cp5.getController("gravity"))) {
+        gravity = cp5.getController("gravity").getValue();
+        println ("changing gravity to:" + gravity);
+
+  }  
   else if (theEvent.isFrom(displayCheckbox)) {
     for (int i=0;i<displayCheckbox.getArrayValue().length;i++) {
       int n = (int)displayCheckbox.getArrayValue()[i];
@@ -444,35 +484,6 @@ void controlEvent(ControlEvent theEvent) {
       }
     }
   }
-  else if (theEvent.isFrom(showhideRadio)) {
-      println("showhide radio control:" + showhideRadio.getItem(0).getState());
-    
-    if ( showhideRadio.getItem(0).getState()) {
-      showImage = true;
-      println("show");
-
-    }
-    else {
-      showImage = false;
-      println("hide");
-    }
-  }
-  else if (theEvent.isFrom((playpauseRadio))) {
-    println("playpause radio control:" + playpauseRadio.getItem(0).getState());
-    
-    if ( playpauseRadio.getItem(0).getState()) {
-      loop();
-      println("play");
-      //playpauseRadio.getItem(0).setImage(buttonimgs[1]);
-
-    }
-    else {
-      noLoop();
-      println("pause");
-      //playpauseRadio.getItem(0).setImage(buttonimgs[0]);
-
-   }
-  } 
 }
 
 //need a reset method, reset resets systems
@@ -484,33 +495,6 @@ void resetSystems()
     println("reset");
 
 }
-
-// This class used only if GUI is SEPARATE WINDOW
-class PWindow extends PApplet {
-  PApplet parent;
-  
-  PWindow(PApplet app) {
-    super();
-    parent = app;
-    PApplet.runSketch(new String[] {this.getClass().getSimpleName()}, this);
-    
-    cp5 = new ControlP5(this);
-
-    setupGUIControls(parent); //pass the original sketch to GUI code
-  }
-  void settings() {
-    size(GUIWidth, parent.height);
-  }
- 
-  void setup() {
-     delay(1000); // this 1 sec delay seems to workaround a concurrent execution issue when separate GUI window is used
-  }
- 
-  void draw() {
-    background(0);
-  }
-}
-
 
 
 void mousePressed(){
@@ -605,9 +589,9 @@ void mouseReleased(){
   boolean OverImage(float x, float y)
   {
       if(x >= imgTopLeftCorner_X &&
-         x <= imgTopLeftCorner_X + baseimg.width &&
+         x < imgTopLeftCorner_X + baseimg.width &&
          y >=0 &&
-         y <=  baseimg.height){
+         y <  baseimg.height){
           return true;     
       }
       return false;
@@ -624,112 +608,126 @@ int convertToGrayScale(color c)
     return grey;
 }
 
+void computeGrayScaleBaseImagePixels(){
+    color c;
+    
+    grayScaleImage = new int[baseimg.width][baseimg.height];
+    
+    for (int j = 0; j < baseimg.height; j++){
+       for (int i = 0; i < baseimg.width; i++){
+         c = baseimg.get(i, j);
+         grayScaleImage[i][j] =  convertToGrayScale(c);
+       }
+    }
+}
+
+void computeInertiaOfBaseImagePixels(){
+    
+    inertia = new int[baseimg.width][baseimg.height];
+    
+    for (int j = 0; j < baseimg.height; j++){
+      for (int i = 0; i < baseimg.width; i++){
+          int lightness = floor(((grayScaleImage[i][j])/256.0)*inertiaFactor);   // map grayscale color of pixel into the range of the inertiaFactor, black = 0 and white = inertiaFactor -1 
+          inertia[i][j] = inertiaFactor - lightness; // mass inertia of the pixel is reverse of the lighness
+          if (inertia[i][j] == 0) {
+                  println ("Not expecting zero, as later will cause divide by zero, check that InertiaFactor is set >= 1");
+                  exit();
+          }
+      }
+    }              
+}
+
 //compute the partial derivatives for a pixel location (i, j)
 //p = pixels[i][j] where i corresponds to row and j corresponds to column
  
-void compute_PartialDerivativesOfPixelWRTAdjacentPixels()
+void compute_PartialDerivativesOfBaseImagePixelWRTAdjacentPixels()
 {
-  
+          /*  Numbering neighboring pixels around a refernce pixel (i,j)
+            i-1  i  i+1
+           ------------
+           | 5 | 0 | 3 | j-1
+           ------------
+           | 6 |i,j| 2 |  j
+           ------------
+           | 7 | 1 | 4 | j+1
+        */  
+      
   //for boundary pixels on image, set to white, high color values
   //check i = 0, i  = baseimg.width - 1, j = 0, j = baseimg.height - 1
   
   int i, j;
+  int BIG_DERIVATIVE = -255;
   
-  //set partial derivatives of adjacent neighbors of corner pixels of image to 0 and diagonal neighbors to -BIG_NUM 
-  
-  adjPixelsDerivatives[0][0][6] = adjPixelsDerivatives[0][0][0] = 0; //topLeft
-  adjPixelsDerivatives[0][0][5] = - BIG_NUM;
-  adjPixelsDerivatives[0][baseimg.height - 1][0] = adjPixelsDerivatives[0][baseimg.height - 1][2] = 0; //bottomLeft
-  adjPixelsDerivatives[0][baseimg.height - 1][7] = -BIG_NUM;
-  adjPixelsDerivatives[baseimg.width - 1][0][1] = adjPixelsDerivatives[baseimg.width - 1][0][6] = 0; //topRight
-  adjPixelsDerivatives[baseimg.width - 1][0][3] = -BIG_NUM;
-  adjPixelsDerivatives[baseimg.width - 1][baseimg.height - 1][1] = adjPixelsDerivatives[baseimg.width - 1][baseimg.height - 1][2] = 0; //bottomRight
-  adjPixelsDerivatives[baseimg.width - 1][baseimg.height - 1][5] = -BIG_NUM;
+  adjPixelsDerivatives =  new float[baseimg.width][baseimg.height][8];
 
   
-  i = 0;
-  
-  for(j = 1; j < baseimg.height - 1; j++) 
+  //go through first and last rows of pixels in image and set as if outside the picture has a steep gradient (negative)
+  for(i = 0; i < baseimg.width; i++) 
   {
-      //go through first column of pixels in image
+      /// first  row
+      adjPixelsDerivatives[i][0][5] = BIG_DERIVATIVE;
+      adjPixelsDerivatives[i][0][0] = BIG_DERIVATIVE;
+      adjPixelsDerivatives[i][0][3] = BIG_DERIVATIVE;
+      if (i != 0) adjPixelsDerivatives[i][0][6] = BIG_DERIVATIVE; //(grayScaleImage[i-1][0]   - grayScaleImage[i][0]) / 1.0;
+      if (i != 0) adjPixelsDerivatives[i][0][7] = -BIG_DERIVATIVE;//(grayScaleImage[i-1][1] - grayScaleImage[i][0]) / sqrt(2);
+      if (i != baseimg.width -1) adjPixelsDerivatives[i][0][2] = BIG_DERIVATIVE; //(grayScaleImage[i+1][0]   - grayScaleImage[i][0]) / 1.0;
+      if (i != baseimg.width -1) adjPixelsDerivatives[i][0][4] = -BIG_DERIVATIVE;//(grayScaleImage[i+1][1] - grayScaleImage[i][0]) / sqrt(2);//corner
+      adjPixelsDerivatives[i][0][1] = -BIG_DERIVATIVE;//(grayScaleImage[i][1]   - grayScaleImage[i][0]) / 1.0;
       
-      
-      adjPixelsDerivatives[0][j][2] = adjPixelsDerivatives[0][j][6] = 0; //set derivatives of adjacent pixels along boundary to 0(3rd and 7th neighborPixel)
-      //      
-      adjPixelsDerivatives[0][j][1] = adjPixelsDerivatives[0][j][4] = adjPixelsDerivatives[0][j][7] = -BIG_NUM; //set derivatives of 2nd, 5th, and 8th neighboring pixels to -BIG_NUM
-      //
-      adjPixelsDerivatives[1][j][0] = BIG_NUM; //rightPixel has derivative BIG_NUM to adjacent pixel in first column
+      //last row
+      adjPixelsDerivatives[i][baseimg.height - 1][7] = BIG_DERIVATIVE;
+      adjPixelsDerivatives[i][baseimg.height - 1][1] = BIG_DERIVATIVE;
+      adjPixelsDerivatives[i][baseimg.height - 1][4] = BIG_DERIVATIVE;
+      if (i != 0) adjPixelsDerivatives[i][baseimg.height - 1][6] = BIG_DERIVATIVE; //(grayScaleImage[i-1][baseimg.height - 1]   - grayScaleImage[i][baseimg.height - 1]) / 1.0;
+      if (i != 0) adjPixelsDerivatives[i][baseimg.height - 1][5] = -BIG_DERIVATIVE;//(grayScaleImage[i-1][baseimg.height - 2] - grayScaleImage[i][baseimg.height - 1]) / sqrt(2);
+      if (i != baseimg.width -1) adjPixelsDerivatives[i][baseimg.height - 1][3] = -BIG_DERIVATIVE;// (grayScaleImage[i+1][baseimg.height - 2] - grayScaleImage[i][baseimg.height - 1]) / sqrt(2);
+      if (i != baseimg.width -1) adjPixelsDerivatives[i][baseimg.height - 1][2] = BIG_DERIVATIVE; //(grayScaleImage[i+1][baseimg.height - 1]   - grayScaleImage[i][baseimg.height - 1]) / 1.0;
+      adjPixelsDerivatives[i][baseimg.height - 1][0] = -BIG_DERIVATIVE;//(grayScaleImage[i][baseimg.height - 2]   - grayScaleImage[i][baseimg.height - 1]) / 1.0;
+  }
+  
+  //go through first and last columns of pixels in image
 
-      
-      
-      //go through last column of pixels in image
-      
-      //set derivatives of adjacent pixels along boundary to 0(3rd and 7th neighborPixel)
-      adjPixelsDerivatives[baseimg.width - 1][j][2] = adjPixelsDerivatives[baseimg.width - 1][j][6] = 0;
-      //set derivatives of 1st, 4th, 6th neighboring pixels to -BIG_NUM 
-      adjPixelsDerivatives[baseimg.width - 1][j][0] = adjPixelsDerivatives[baseimg.width - 1][j][3] = adjPixelsDerivatives[baseimg.width - 1][j][5] = -BIG_NUM;
-      
-      adjPixelsDerivatives[baseimg.width - 2][j][1] = BIG_NUM; //leftPixel has derivate BIG_NUM to adjacent pixel in last column
-  }
-  
-  j = 0;
-  
-  for(i = 1; i < baseimg.width - 1; i++)
+  for(j = 0; j < baseimg.height; j++)
   {
-      //go through first row of pixels in image
-    
-      //set derivatives of adjacent pixels along boundary to 0(6th and 8th neighborPixel)
-      adjPixelsDerivatives[i][0][5] = adjPixelsDerivatives[i][0][7] = 0;
-      //set derivatives of 3rd, 4th, and 5th neighboring pixels to -BIG_NUM
-      adjPixelsDerivatives[i][0][2] = adjPixelsDerivatives[i][0][3] = adjPixelsDerivatives[i][0][4] = -BIG_NUM;
-      //
-      adjPixelsDerivatives[i][1][6] = BIG_NUM; //set derivative of 7th neighbor pixel to BIG_NUM
+      //first column
+      adjPixelsDerivatives[0][j][5] = BIG_DERIVATIVE;
+      adjPixelsDerivatives[0][j][6] = BIG_DERIVATIVE;
+      adjPixelsDerivatives[0][j][7] = BIG_DERIVATIVE;
+      if (j != 0) adjPixelsDerivatives[0][j][0] = BIG_DERIVATIVE; //(grayScaleImage[0][j-1]   - grayScaleImage[0][j]) / 1.0;
+      if (j != 0) adjPixelsDerivatives[0][j][3] = -BIG_DERIVATIVE;//(grayScaleImage[1][j-1] - grayScaleImage[0][j]) / sqrt(2);
+      if (j != baseimg.height - 1) adjPixelsDerivatives[0][j][1] = BIG_DERIVATIVE; //(grayScaleImage[0][j+1]   - grayScaleImage[0][j]) / 1.0;
+      if (j != baseimg.height - 1) adjPixelsDerivatives[0][j][4] = -BIG_DERIVATIVE;//(grayScaleImage[1][j+1] - grayScaleImage[0][j]) / sqrt(2);
+      adjPixelsDerivatives[0][j][2] = -BIG_DERIVATIVE; //(grayScaleImage[1][j]   - grayScaleImage[0][j]) / 1.0;
       
-      //go through last row of pixels in image
-    
-      //set derivatives of adjacent pixels along boundary to 0(1st and 2nd neighborPixel)
-      adjPixelsDerivatives[i][baseimg.height - 1][0] = adjPixelsDerivatives[i][0][1] = 0;
-      //set derivatives of 6th, 7th, and 8th neighboring pixels to -BIG_NUM
-      adjPixelsDerivatives[i][baseimg.height - 1][5] = adjPixelsDerivatives[i][0][6] = adjPixelsDerivatives[i][0][7] = -BIG_NUM;
-      //
-      adjPixelsDerivatives[i][baseimg.height - 2][2] = BIG_NUM; //set derivative of 3rd neighbor pixel to BIG_NUM
+      //last column
+      adjPixelsDerivatives[baseimg.width -1][j][3] = BIG_DERIVATIVE; 
+      adjPixelsDerivatives[baseimg.width -1][j][2] = BIG_DERIVATIVE; 
+      adjPixelsDerivatives[baseimg.width -1][j][4] = BIG_DERIVATIVE; 
+      if (j != 0) adjPixelsDerivatives[baseimg.width -1][j][0] = BIG_DERIVATIVE; //(grayScaleImage[baseimg.width -1][j-1]   - grayScaleImage[baseimg.width -1][j]) / 1.0;
+      if (j != 0) adjPixelsDerivatives[baseimg.width -1][j][5] = -BIG_DERIVATIVE;//(grayScaleImage[baseimg.width -2][j-1] - grayScaleImage[baseimg.width -1][j]) / sqrt(2);
+      if (j != baseimg.height - 1) adjPixelsDerivatives[baseimg.width -1][j][7] = -BIG_DERIVATIVE;//(grayScaleImage[baseimg.width -2][j+1] - grayScaleImage[baseimg.width -1][j]) / sqrt(2);
+      if (j != baseimg.height - 1) adjPixelsDerivatives[baseimg.width -1][j][1] = BIG_DERIVATIVE; // (grayScaleImage[baseimg.width -1][j+1]   - grayScaleImage[baseimg.width -1][j]) / 1.0;
+      adjPixelsDerivatives[baseimg.width -1][j][6] = -BIG_DERIVATIVE;//(grayScaleImage[baseimg.width -2][j]   - grayScaleImage[baseimg.width -1][j]) / 1.0;
+      
   }
-  
-  String s = new String(), s0= new String(), s1= new String(), s2= new String(), s3= new String(), s4= new String(), s5= new String(), s6= new String(), s7= new String();
-  
+    
+  //set the gradients for the inner rows and columns
   for (j = 1; j < baseimg.height - 1; j++){
        for (i = 1; i < baseimg.width - 1; i++){
-          
-          color c = baseimg.get(i, j);
-          color c1 = baseimg.get(i, j-1); 
-          color c2 = baseimg.get(i, j+1); 
-          color c3 = baseimg.get(i+1, j);  
-          color c4 = baseimg.get(i+1, j-1);//corner
-          color c5 = baseimg.get(i+1, j+1);//corner
-          color c6 = baseimg.get(i-1, j-1);//corner
-          color c7 = baseimg.get(i-1, j);
-          color c8 = baseimg.get(i-1, j+1);//corner
-          
-          float grey = convertToGrayScale(c);
-          float grey1 = convertToGrayScale(c1);
-          float grey2 = convertToGrayScale(c2);
-          float grey3 = convertToGrayScale(c3);
-          float grey4 = convertToGrayScale(c4);
-          float grey5 = convertToGrayScale(c5);
-          float grey6 = convertToGrayScale(c6);
-          float grey7 = convertToGrayScale(c7);
-          float grey8 = convertToGrayScale(c8);
-          
-          
-          adjPixelsDerivatives[i][j][0] = (grey1 - grey) / 1.0;
-          adjPixelsDerivatives[i][j][1] = (grey2 - grey) / 1.0;
-          adjPixelsDerivatives[i][j][2] = (grey3 - grey) / 1.0;
-          adjPixelsDerivatives[i][j][3] = (grey4 - grey) / sqrt(2);//corner
-          adjPixelsDerivatives[i][j][4] = (grey5 - grey) / sqrt(2);//corner
-          adjPixelsDerivatives[i][j][5] = (grey6 - grey) / sqrt(2);//corner
-          adjPixelsDerivatives[i][j][6] = (grey7 - grey) / 1.0;
-          adjPixelsDerivatives[i][j][7]  = (grey8 - grey) / sqrt(2);//corner
-          
+        
+          adjPixelsDerivatives[i][j][0] = (grayScaleImage[i][j-1]   - grayScaleImage[i][j]) / 1.0;
+          adjPixelsDerivatives[i][j][1] = (grayScaleImage[i][j+1]   - grayScaleImage[i][j]) / 1.0;
+          adjPixelsDerivatives[i][j][2] = (grayScaleImage[i+1][j]   - grayScaleImage[i][j]) / 1.0;
+          adjPixelsDerivatives[i][j][3] = (grayScaleImage[i+1][j-1] - grayScaleImage[i][j]) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][4] = (grayScaleImage[i+1][j+1] - grayScaleImage[i][j]) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][5] = (grayScaleImage[i-1][j-1] - grayScaleImage[i][j]) / sqrt(2);//corner
+          adjPixelsDerivatives[i][j][6] = (grayScaleImage[i-1][j]   - grayScaleImage[i][j]) / 1.0;
+          adjPixelsDerivatives[i][j][7] = (grayScaleImage[i-1][j+1] - grayScaleImage[i][j]) / sqrt(2);//corner
+    }
+  }
+}
+
+/*
           if (printpixelgradients) {
               if (i >=200 && i <=204 && j >= 142 && j <= 148) {
                 s  += " " + nf(convertToGrayScale(baseimg.get(i, j)), 7);
@@ -747,7 +745,37 @@ void compute_PartialDerivativesOfPixelWRTAdjacentPixels()
                 }
               }
           }
-    }
-  }
           if (printpixelgradients) println (s); println (s0); println (s1); println (s2); println (s3); println (s4); println (s5); println (s6); println (s7); 
+
+*/
+  //for a pixel location, map the direction of the force vector to a octant, and the octant determines which of the 8 gradients from the pixel will be used
+int MapVectorToGradientIndex(PVector vector)
+{
+     
+        /*  Numbering neighboring pixels around a refernce pixel (i,j)
+            i-1  i  i+1
+           ------------
+           | 5 | 0 | 3 | j-1
+           ------------
+           | 6 |i,j| 2 |  j
+           ------------
+           | 7 | 1 | 4 | j+1
+        */  
+ 
+       int index = -1;
+       float theta = vector.heading();
+              
+       if (theta > -PI/8 && theta <= PI/8 ) index = 2;
+       else if (theta > PI/8 && theta <= 3*PI/8 ) index = 3;
+       else if (theta > 3*PI/8 && theta <= 5*PI/8) index = 0;
+       else if (theta > 5*PI/8 && theta <= 7*PI/8) index = 5;
+       else if (theta > 7*PI/8 || theta <= -7*PI/8) index = 6;  //around 180 degrees
+       else if (theta > -7*PI/8 && theta <= -5*PI/8)index = 7;
+       else if (theta > -5*PI/8 && theta <= -3*PI/8)index = 1;
+       else if (theta > -3*PI/8 && theta <= -PI/8)index = 4;
+  
+       
+       //println("vector: (" + vector.x + "," + vector.y + ") Angle = " + theta + " Index = " + index);
+
+       return index; //should not reach here
 }
