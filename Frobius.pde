@@ -3,6 +3,7 @@ int lifespan;
 int numParticles = 0;
 float unit_of_time = 1.0;
 boolean debug = false;
+boolean debug1 = true;
 
 boolean showImage = true;
 boolean createParticleSystem = false; // create Particle System
@@ -16,22 +17,41 @@ float   max_acceleration = 0.0; // a particle/point picks a random acceleration 
 boolean has_brownianmotion = false;
 float   coeff_friction = 0.25;//coefficient of friction
 
+int n_min = 2;
 
 boolean has_attractionrepulsion = false;
-float   D_attraction = 0.0; //distance outside which points dont influence each other
-float   D_repulsion = 0.0;  //distance inside which points repel each other, set to 25% of attract
+float   D;//controlled by user, D is the average distance between two points
+float   R1 = 0.0; //distance outside which points dont influence each other
+float   R0 = 0.0;  //distance inside which points repel each other
+
+float kmin = 0.2;
+float kmax = 1.2;
+
+boolean has_fairing = false;
+
 float[][][] adjPixelsDerivatives;
-int[][]   inertia;
-int[][]   grayScaleImage;
-int inertiaFactor = 10;  //must be 1 or higher
+float[][]   f_a, f_b, f_f;  // scaling functions for AR, Brownian, and Fairing, respectively
+float[][]   delta;
+float[][]   grayScaleImage;
 
 
 float gravity;
 
-
 void draw() {
   background(220);
   strokeWeight(4);
+  
+
+  /*
+  Point p1 = new Point(500, 300, ps);
+  Point p2 = new Point(300, 400, ps);
+  
+  ps.(p1);
+  
+  Point p2neighbor;
+  */
+  
+  //compute
   
   drawGUIBackground();
   
@@ -59,18 +79,25 @@ void draw() {
       stroke(0);
       strokeWeight(1);
       stroke(40);
-
+      
+      int tot_points = 0;
       if(showPointSystem)
       {
+       
          for(PointSystem ps: spirals)
          {
            noFill();
            if (ps != null){
               ps.display();
               ps.computeNetForceandNewPositionofPoints();
+              ps.getReadyForNextIteration();
+              tot_points += ps.points.size();
             }        
          }
       }
+      
+      myTextlabelA.setText("FrameCount: " + frameCount);
+      myTextlabelB.setText("Points: " + tot_points); 
    }
    else {   // no base image
     textAlign(CENTER);

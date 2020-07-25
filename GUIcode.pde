@@ -10,6 +10,7 @@ float guiXscale,  guiYscale;
 color c = color(0, 160, 100);  // not related to program, can be removed
 CheckBox forceCheckBox, displayCheckbox;
 RadioButton playpauseRadio, showhideRadio, particlePointRadio;
+Textlabel myTextlabelA, myTextlabelB;
 
 //variables to input from screen a start & end points (x,y) of a box from user to bound a emitter or particle system
 float new_box_startx, new_box_starty, new_box_endx, new_box_endy; 
@@ -36,6 +37,7 @@ void setup() {
   noStroke();
   frameRate(30);
   
+  //ps = new PointSystem(500, 500, 800, 800);
   
   cp5 = new ControlP5(this);
   setupGUIControls(this);
@@ -65,10 +67,10 @@ void setupGUIControls (PApplet parent) {
     PFont GUIfont = createFont ("verdana", labelsize,false);
     ControlFont font1 = new ControlFont(GUIfont,labelsize);
        //<>//
-    Group g1 = cp5.addGroup("Image Knobs")
+    Group g1 = cp5.addGroup("Image Knobs") //<>//
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(170*guiYscale))
+                  .setBackgroundHeight((int)(170*guiYscale)) //<>//
                   ;
         
     cp5.addBang("LoadNewImage")
@@ -116,12 +118,20 @@ void setupGUIControls (PApplet parent) {
        .plugTo(parent,"controlEvent")
        ;
        
+    myTextlabelA = cp5.addTextlabel("label")
+        .setText("FrameCount " + frameCount)
+        .setPosition((int)(130*guiXscale),(int)(140*guiYscale))
+        //.setColorValue(0xffffff00)
+        //.setFont(createFont("Georgia",20))
+        .moveTo(g1);
+      ;
+       
     cp5.addFrameRate().setInterval(10).setPosition((int)(130*guiXscale),(int)(95*guiYscale)).moveTo(g1);
          
     Group g2 = cp5.addGroup("Emitter & Particle System Knobs")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(300*guiYscale))
+                  .setBackgroundHeight((int)(250*guiYscale))
                   ;
 
     particlePointRadio = cp5.addRadioButton("particle_points_radio")
@@ -147,6 +157,14 @@ void setupGUIControls (PApplet parent) {
      .plugTo(parent,"resetSystems")
      ;
      
+    myTextlabelB = cp5.addTextlabel("label1")
+        .setText("Points: ")
+        .setPosition((int)(200*guiXscale),(int)(40*guiYscale))
+        //.setColorValue(0xffffff00)
+        //.setFont(createFont("Georgia",20))
+        .moveTo(g2);
+      ;     
+     
     displayCheckbox = cp5.addCheckBox("displaycheckBox")
       .setPosition((int)(10*guiXscale), (int)(100*guiYscale))
       .setSize((int)(40*guiXscale), (int)(40*guiYscale))
@@ -159,49 +177,36 @@ void setupGUIControls (PApplet parent) {
       .plugTo(parent,"controlEvent")
       ;
     displayCheckbox.activateAll();
+   
+    cp5.addSlider("DistBetweenPoints")
+       .setPosition((int)(10*guiXscale),(int)(160*guiYscale))
+       .setSize((int)(100*guiXscale),(int)(20*guiYscale))
+       //.setFont(font1)
+       .setLabel("D_betweenPoints")
+       .setRange(10,50)
+       .setValue(15)
+       .moveTo(g2)
+       .plugTo(parent,"controlEvent")
+       ;      
+      
     
-    cp5.addSlider("Max Acceleration")
-     .setPosition((int)(10*guiXscale),(int)(160*guiYscale))
-     .setSize((int)(100*guiXscale),(int)(20*guiYscale))
-     //.setFont(font1)
-     .setRange(0.0,4.0)
-     .setValue(2.0)
-     .moveTo(g2)
-     .plugTo(parent,"controlEvent")
-    ;
-    
-   cp5.addSlider("Friction Coeff")
+       
+   cp5.addSlider("AttractRepelK0")
      .setPosition((int)(10*guiXscale),(int)(190*guiYscale))
      .setSize((int)(100*guiXscale),(int)(20*guiYscale))
      //.setFont(font1)
-     .setRange(0.0,1.0)
-     .setValue(0.0)
-     .moveTo(g2)
-     .plugTo(parent,"controlEvent")
-    ;            
-       
-   cp5.addSlider("AttractRepelRadius")
-     .setPosition((int)(10*guiXscale),(int)(220*guiYscale))
-     .setSize((int)(100*guiXscale),(int)(20*guiYscale))
-     //.setFont(font1)
-     .setLabel("Attraction Radius")
-     .setRange(0.0, 200.0)
-     .setValue(100.0)
+     .setLabel("AR_k0")
+     .setRange(0.1, 0.3)
+     .setValue(0.1)
+     .setNumberOfTickMarks(2)
      .moveTo(g2)
      .plugTo(parent,"controlEvent")
 
     ;                      
-             
-    cp5.addSlider("numParticles")
-       .setPosition((int)(10*guiXscale),(int)(250*guiYscale))
-       .setSize((int)(100*guiXscale),(int)(20*guiYscale))
-       //.setFont(font1)
-       .setLabel("Num Particles/Points")
-       .setRange(10,10000)
-       .setValue(1000)
-       .moveTo(g2)
-       .plugTo(parent,"controlEvent")
-       ;             
+       
+       
+       
+       
     Group g3 = cp5.addGroup("Force Knobs")
                   .setFont(font1)
                   .setBackgroundColor(color(0, 64))
@@ -216,7 +221,7 @@ void setupGUIControls (PApplet parent) {
                 .setSpacingRow((int)(25*guiYscale))
                 .addItem("Brownian Motion", 0)
                 .addItem("Attract Repel", 1)
-                .addItem("Fairing (tbd)",2)
+                .addItem("Fairing",2)
                 .moveTo(g3)
                 .plugTo(parent,"controlEvent")
                 ;
@@ -261,7 +266,37 @@ void setupGUIControls (PApplet parent) {
 
        ;
        
-
+      cp5.addSlider("numParticles")
+       .setPosition((int)(10*guiXscale),(int)(110*guiYscale))
+       .setSize((int)(100*guiXscale),(int)(20*guiYscale))
+       //.setFont(font1)
+       .setLabel("Num Particles/Points")
+       .setRange(10,10000)
+       .setValue(1000)
+       .moveTo(g4)
+       .plugTo(parent,"controlEvent")
+       ;  
+       
+    cp5.addSlider("Max Acceleration")
+     .setPosition((int)(10*guiXscale),(int)(140*guiYscale))
+     .setSize((int)(100*guiXscale),(int)(20*guiYscale))
+     //.setFont(font1)
+     .setRange(0.0,4.0)
+     .setValue(2.0)
+     .moveTo(g4)
+     .plugTo(parent,"controlEvent")
+    ;       
+      
+   cp5.addSlider("Friction Coeff")
+     .setPosition((int)(10*guiXscale),(int)(170*guiYscale))
+     .setSize((int)(100*guiXscale),(int)(20*guiYscale))
+     //.setFont(font1)
+     .setRange(0.0,1.0)
+     .setValue(0.0)
+     .moveTo(g4)
+     .plugTo(parent,"controlEvent")
+    ;      
+       
     /*Group g5 = cp5.addGroup("Point System Controls")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
@@ -386,10 +421,10 @@ void OperationsAfterBaseImageLoaded(){
     imgTopLeftCorner_X = (int) (guiwidth + (width - guiwidth - baseimg.width)/2);
     
     
-    //println("baseimg.width = " + baseimg.width + ", baseimg.height = " + baseimg.height);
+    println("baseimg.width = " + baseimg.width + ", baseimg.height = " + baseimg.height);
     
     computeGrayScaleBaseImagePixels();
-    computeInertiaOfBaseImagePixels();
+    computeInertiaAndDeltaOfBaseImagePixels();
     compute_PartialDerivativesOfBaseImagePixelWRTAdjacentPixels();
 }
 
@@ -411,7 +446,10 @@ void controlEvent(ControlEvent theEvent) {
                      else has_attractionrepulsion = false;
                      println ("Attraction Repel set to " + has_attractionrepulsion);
                      break;
-            case 4:  
+            case 2:  
+                     if (n==1) has_fairing = true;
+                     else has_fairing = false;
+                     println ("Fairing set to " + has_fairing);
                      break;
             case 5:  
                      break;
@@ -431,6 +469,17 @@ void controlEvent(ControlEvent theEvent) {
               ps.change_num_of_particles(numParticles);
           }
         }
+  }
+  else if (theEvent.isFrom((Slider) cp5.getController("DistBetweenPoints"))) { 
+        D = (int) cp5.getController("DistBetweenPoints").getValue();
+        R0 = D * (float) cp5.getController("AttractRepelK0").getValue(); //D_repulsion = k0*D = sigma in LJ potential function
+        R1 = 2.5 * R0;//R1 = k1*D. For now computing as  2.5*sigma as indicated by LJ potential formula;
+        for (PointSystem ps: spirals)
+        {
+            ps.intitalizeGridSystem();
+        }
+        
+        println ("Changing DistBetweenPoints event:" + D + " also changes RepelRadius: " + R0 + " AttractRadius: " + R1);
   }
   else if (theEvent.isFrom((Slider) cp5.getController("myframerate"))) { 
       frameRate((int) cp5.getController("myframerate").getValue());
@@ -455,10 +504,14 @@ void controlEvent(ControlEvent theEvent) {
         println ("Friction Coeff:" + coeff_friction);
   }
   
-  else if (theEvent.isFrom((Slider) cp5.getController("AttractRepelRadius"))) { 
-        D_attraction = (float) cp5.getController("AttractRepelRadius").getValue();
-        D_repulsion = 2.0;//D_attraction/4.0;
-        println ("AttractRepelRadius:" + D_attraction);
+  else if (theEvent.isFrom((Slider) cp5.getController("AttractRepelK0"))) { 
+        R0 = D * (float) cp5.getController("AttractRepelK0").getValue(); //D_repulsion = k0*D = sigma in LJ potential function
+        R1 = 2.5 * R0;//R1 = k1*D. For now computing as  2.5*sigma as indicated by LJ potential formula;
+        for (PointSystem ps: spirals)
+        {
+            ps.intitalizeGridSystem();
+        }
+        println ("RepelRadius: " + R0 + " AttractRadius: " + R1);
   }
   else if (theEvent.isFrom((Slider) cp5.getController("SquareBoxDim"))) {
         emitter_squarewall_len = (int) cp5.getController("SquareBoxDim").getValue();
@@ -608,10 +661,16 @@ int convertToGrayScale(color c)
     return grey;
 }
 
+void computeInertiaOfBaseImage()
+{
+  
+  
+}
+
 void computeGrayScaleBaseImagePixels(){
     color c;
     
-    grayScaleImage = new int[baseimg.width][baseimg.height];
+    grayScaleImage = new float[baseimg.width][baseimg.height];
     
     for (int j = 0; j < baseimg.height; j++){
        for (int i = 0; i < baseimg.width; i++){
@@ -621,18 +680,20 @@ void computeGrayScaleBaseImagePixels(){
     }
 }
 
-void computeInertiaOfBaseImagePixels(){
+void computeInertiaAndDeltaOfBaseImagePixels(){
     
-    inertia = new int[baseimg.width][baseimg.height];
+    f_a = new float[baseimg.width][baseimg.height];
+    f_b = new float[baseimg.width][baseimg.height];
+    f_f = new float[baseimg.width][baseimg.height];
+
+    delta = new float[baseimg.width][baseimg.height];
     
     for (int j = 0; j < baseimg.height; j++){
       for (int i = 0; i < baseimg.width; i++){
-          int lightness = floor(((grayScaleImage[i][j])/256.0)*inertiaFactor);   // map grayscale color of pixel into the range of the inertiaFactor, black = 0 and white = inertiaFactor -1 
-          inertia[i][j] = inertiaFactor - lightness; // mass inertia of the pixel is reverse of the lighness
-          if (inertia[i][j] == 0) {
-                  println ("Not expecting zero, as later will cause divide by zero, check that InertiaFactor is set >= 1");
-                  exit();
-          }
+          f_b[i][j] = 0.2; //or 0
+          delta[i][j] = 1.0;//(grayScaleImage[i][j] + 1) / 256; or 0.02
+          f_f[i][j] = 0.3;//or 0.005
+          f_a[i][j] = 10; // or 0
       }
     }              
 }
