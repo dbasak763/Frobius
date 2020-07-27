@@ -293,7 +293,7 @@ class PointSystem
                        
                        for(int k = index_p1 - n_min; k < index_p1; k++) //from point p1's index, get the indices to its left that we do not want to consider
                        {
-                           wrapped_index = k % points.size();
+                           wrapped_index = (k + points.size())% points.size(); // handle wrap around case
                            if (index_p2 == wrapped_index) skip_flag = true;
                        }
                        
@@ -459,7 +459,8 @@ class PointSystem
     
     void fairing()
     {
-         Point p_index, p_index_left, p_index_right;
+         int p_index, p_index_left, p_index_right;
+         Point p, p_left, p_right;
          
          float delta_p, delta_p_left, delta_p_right, denom, weighted_average_x, weighted_average_y;
          
@@ -467,23 +468,23 @@ class PointSystem
          
          for(int i = 0; i < points.size(); i++)
          {
-             p_index = points.get(i);
-             p_index_left = points.get((i-1) % points.size());
-             p_index_right = points.get((i+1) % points.size());
+             p = points.get(i);
+             p_left = points.get(((points.size() + i - 1) % points.size()));
+             p_right = points.get((i + 1) % points.size());
              
-             delta_p_left = delta[(int)(p_index_left.x - imgTopLeftCorner_X)][(int)(p_index_left.y)];
-             delta_p_right = delta[(int)(p_index_right.x - imgTopLeftCorner_X)][(int)(p_index_right.y)];
+             delta_p_left = delta[(int)(p_left.x - imgTopLeftCorner_X)][(int)(p_left.y)];
+             delta_p_right = delta[(int)(p_right.x - imgTopLeftCorner_X)][(int)(p_right.y)];
              
              
              denom = delta_p_left + delta_p_right; 
              
-             weighted_average_x = (p_index_left.x * delta_p_right + p_index_right.x * delta_p_left) / denom;
-             weighted_average_y = (p_index_left.y * delta_p_right + p_index_right.y * delta_p_left) / denom;
+             weighted_average_x = (p_left.x * delta_p_right + p_right.x * delta_p_left) / denom;
+             weighted_average_y = (p_left.y * delta_p_right + p_right.y * delta_p_left) / denom;
                           
-             fairing_vec.set(weighted_average_x - p_index.x, weighted_average_y - p_index.y);
-             fairing_vec.mult(f_f[(int)(p_index.x - imgTopLeftCorner_X)][(int)(p_index.y)]);
+             fairing_vec.set(weighted_average_x - p.x, weighted_average_y - p.y);
+             fairing_vec.mult(f_f[(int)(p.x - imgTopLeftCorner_X)][(int)(p.y)]);
              
-             p_index.netForce.add(fairing_vec);  
+             p.netForce.add(fairing_vec);  
              
          }
       
@@ -645,7 +646,7 @@ class PointSystem
    {
         float theta = 0.0;
         //circle is inscribed in pointsystem bounding box with center at (boxwidth / 2, boxheight / 2)
-        float radius = min(bottom_right_X - top_left_X, bottom_right_Y - top_left_Y) / 2;
+        float radius = min(bottom_right_X - top_left_X, bottom_right_Y - top_left_Y) / 4;
         //at start, vec points in x_direction
         PVector vec = new PVector(radius, 0);
         

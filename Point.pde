@@ -1,14 +1,10 @@
-ArrayList<Point> points;
 
 class Point 
 {
    float x, y;
-   float mass;
    PVector randDirection;
    PVector netForce;
    PVector velocity;
-   PVector BRForce;
-   int Max_Rebirth_Distance_X, Max_Rebirth_Distance_Y;
    int myindexingloballist; //point's index in global list, temporary variable that is recomputed at start of every iteration to efficiently get the index of point, 
    
    PointSystem parentps; //tracks the parent point system to which this point belongs
@@ -17,17 +13,13 @@ class Point
    {
       x = px;
       y = py;
-      mass = 1.0;
+      //mass = 1.0;
 
       parentps = parent;
-      
-      Max_Rebirth_Distance_X = 20;//(int)(parentps.bottom_right_X - parentps.top_left_X);
-      Max_Rebirth_Distance_Y = 20;//(int)(parentps.bottom_right_Y - parentps.top_left_Y);
       
       randDirection = new PVector(0, 0);
       netForce = new PVector(0.0, 0.0);
       velocity = new PVector(0.0, 0.0);
-      BRForce = new PVector(0.0, 0.0);
    }
    
    void apply_friction()
@@ -35,15 +27,12 @@ class Point
       PVector force = PVector.mult(velocity, -coeff_friction);
       netForce.add(force);
    }
-   //not localized
-   void apply_ARforces()
-   {
-        
-   }
    
    void apply_brownianmotion()
    {
       
+      PVector BRForce = new PVector(0.0, 0.0); 
+     
       int x_index = (int)(this.x - imgTopLeftCorner_X);
       int y_index = (int)this.y;
       

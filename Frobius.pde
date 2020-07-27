@@ -10,7 +10,7 @@ boolean createParticleSystem = false; // create Particle System
 boolean createPointSystem = true; // create Spiral Path
 boolean showParticleSystem = true; // show ParticleSystems
 boolean showPointSystem = true; // show SpiralPaths
-boolean showGridTiles = true;// show gridTiles
+
 
 //force related variabales
 float   max_acceleration = 0.0; // a particle/point picks a random acceleration less than this
@@ -40,18 +40,6 @@ float gravity;
 void draw() {
   background(220);
   strokeWeight(4);
-  
-
-  /*
-  Point p1 = new Point(500, 300, ps);
-  Point p2 = new Point(300, 400, ps);
-  
-  ps.(p1);
-  
-  Point p2neighbor;
-  */
-  
-  //compute
   
   drawGUIBackground();
   

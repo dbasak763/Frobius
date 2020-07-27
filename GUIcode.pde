@@ -61,7 +61,7 @@ void drawGUIBackground(){
 }
 
 
-
+//cp5 widgets
 void setupGUIControls (PApplet parent) {
   
     PFont GUIfont = createFont ("verdana", labelsize,false);
@@ -689,11 +689,15 @@ void computeInertiaAndDeltaOfBaseImagePixels(){
     delta = new float[baseimg.width][baseimg.height];
     
     for (int j = 0; j < baseimg.height; j++){
-      for (int i = 0; i < baseimg.width; i++){
+      for (int i = 0; i < baseimg.width; i++){   
           f_b[i][j] = 0.2; //or 0
-          delta[i][j] = 1.0;//(grayScaleImage[i][j] + 1) / 256; or 0.02
           f_f[i][j] = 0.3;//or 0.005
           f_a[i][j] = 10; // or 0
+          float delta_based_on_grayscale = (grayScaleImage[i][j] + 1) / 256;
+          delta_based_on_grayscale = ceil(delta_based_on_grayscale/0.05)/20.0;
+          
+          delta[i][j] = delta_based_on_grayscale; //1.00 or 0.02
+
       }
     }              
 }
