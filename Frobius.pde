@@ -3,7 +3,7 @@ int lifespan;
 int numParticles = 0;
 float unit_of_time = 1.0;
 boolean debug = false;
-boolean debug1 = true;
+boolean debug1 = false;
 
 boolean showImage = true;
 boolean createParticleSystem = false; // create Particle System
@@ -76,9 +76,9 @@ void draw() {
          {
            noFill();
            if (ps != null){
-              ps.display();
-              ps.computeNetForceandNewPositionofPoints();
               ps.getReadyForNextIteration();
+              ps.computeNetForceandNewPositionofPoints();
+              ps.display();
               tot_points += ps.points.size();
             }        
          }

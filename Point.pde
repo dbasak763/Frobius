@@ -2,12 +2,11 @@
 class Point 
 {
    float x, y;
-   PVector randDirection;
    PVector netForce;
    PVector velocity;
    int myindexingloballist; //point's index in global list, temporary variable that is recomputed at start of every iteration to efficiently get the index of point, 
    
-   PointSystem parentps; //tracks the parent point system to which this point belongs
+   PointSystem parentps; //tracks the parent point system to which this point belongs to get the bounding box within which point should be constrained
    
    Point(float px, float py, PointSystem parent)
    {
@@ -17,7 +16,6 @@ class Point
 
       parentps = parent;
       
-      randDirection = new PVector(0, 0);
       netForce = new PVector(0.0, 0.0);
       velocity = new PVector(0.0, 0.0);
    }
@@ -73,5 +71,8 @@ class Point
 
    }
 
+  void printPointDetails(){
+   println ("Point [" + myindexingloballist + "] at location ( " + x + " , " + y + ")"); 
+  }
     
 }

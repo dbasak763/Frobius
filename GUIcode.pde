@@ -424,7 +424,7 @@ void OperationsAfterBaseImageLoaded(){
     println("baseimg.width = " + baseimg.width + ", baseimg.height = " + baseimg.height);
     
     computeGrayScaleBaseImagePixels();
-    computeInertiaAndDeltaOfBaseImagePixels();
+    setScalingAndDeltaFunctionsBasedOnBaseImagePixels();
     compute_PartialDerivativesOfBaseImagePixelWRTAdjacentPixels();
 }
 
@@ -680,7 +680,7 @@ void computeGrayScaleBaseImagePixels(){
     }
 }
 
-void computeInertiaAndDeltaOfBaseImagePixels(){
+void setScalingAndDeltaFunctionsBasedOnBaseImagePixels(){
     
     f_a = new float[baseimg.width][baseimg.height];
     f_b = new float[baseimg.width][baseimg.height];
@@ -692,7 +692,7 @@ void computeInertiaAndDeltaOfBaseImagePixels(){
       for (int i = 0; i < baseimg.width; i++){   
           f_b[i][j] = 0.2; //or 0
           f_f[i][j] = 0.3;//or 0.005
-          f_a[i][j] = 10; // or 0
+          f_a[i][j] = 1; // or 0
           float delta_based_on_grayscale = (grayScaleImage[i][j] + 1) / 256;
           delta_based_on_grayscale = ceil(delta_based_on_grayscale/0.05)/20.0;
           

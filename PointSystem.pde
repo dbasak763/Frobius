@@ -129,6 +129,9 @@ class PointSystem
     
     if (p1 == p2  || p1 == p2neighbor) {
       println("Error: computeAR_forceOnFirstPointFromLineSegmentFromSecondPoint - same point not expected");
+      p1.printPointDetails();
+      p2.printPointDetails();
+      p2neighbor.printPointDetails();
       exit();
     }
     
@@ -626,8 +629,8 @@ class PointSystem
           
           //recompute point's index in global list at start of every iteration to efficiently get the index of point
    
-          p.myindexingloballist = i;         
-          
+          p.myindexingloballist = i;
+          //p.printPointDetails();
         }
            
       
