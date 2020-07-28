@@ -9,7 +9,7 @@ float guiXscale,  guiYscale;
 
 color c = color(0, 160, 100);  // not related to program, can be removed
 CheckBox forceCheckBox, displayCheckbox;
-RadioButton playpauseRadio, showhideRadio, particlePointRadio;
+RadioButton playpauseRadio, showhideRadio, particlePointRadio, stepModeRadio;
 Textlabel myTextlabelA, myTextlabelB;
 
 //variables to input from screen a start & end points (x,y) of a box from user to bound a emitter or particle system
@@ -70,7 +70,7 @@ void setupGUIControls (PApplet parent) {
     Group g1 = cp5.addGroup("Image Knobs") //<>//
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(170*guiYscale)) //<>//
+                  .setBackgroundHeight((int)(165*guiYscale)) //<>//
                   ;
         
     cp5.addBang("LoadNewImage")
@@ -131,7 +131,7 @@ void setupGUIControls (PApplet parent) {
     Group g2 = cp5.addGroup("Emitter & Particle System Knobs")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(250*guiYscale))
+                  .setBackgroundHeight((int)(230*guiYscale))
                   ;
 
     particlePointRadio = cp5.addRadioButton("particle_points_radio")
@@ -183,8 +183,9 @@ void setupGUIControls (PApplet parent) {
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
        .setLabel("D_betweenPoints")
-       .setRange(10,50)
-       .setValue(15)
+       .setRange(10,510)
+       .setValue(200)
+       .setNumberOfTickMarks(11)       
        .moveTo(g2)
        .plugTo(parent,"controlEvent")
        ;      
@@ -195,7 +196,7 @@ void setupGUIControls (PApplet parent) {
      .setPosition((int)(10*guiXscale),(int)(190*guiYscale))
      .setSize((int)(100*guiXscale),(int)(20*guiYscale))
      //.setFont(font1)
-     .setLabel("AR_k0")
+     .setLabel("k0")
      .setRange(0.1, 0.3)
      .setValue(0.1)
      .setNumberOfTickMarks(2)
@@ -210,7 +211,7 @@ void setupGUIControls (PApplet parent) {
     Group g3 = cp5.addGroup("Force Knobs")
                   .setFont(font1)
                   .setBackgroundColor(color(0, 64))
-                  .setBackgroundHeight((int)(150*guiYscale))
+                  .setBackgroundHeight((int)(130*guiYscale))
                   ;
        
     forceCheckBox = cp5.addCheckBox("checkBox")
@@ -230,7 +231,7 @@ void setupGUIControls (PApplet parent) {
     Group g4 = cp5.addGroup("Emitter Specific Knobs")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(150*guiYscale))
+                  .setBackgroundHeight((int)(200*guiYscale))
                   ;
                   
        
@@ -297,12 +298,32 @@ void setupGUIControls (PApplet parent) {
      .plugTo(parent,"controlEvent")
     ;      
        
-    /*Group g5 = cp5.addGroup("Point System Controls")
+    Group g5 = cp5.addGroup("Point System Debug Mode")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(300*guiYscale))
+                  .setBackgroundHeight((int)(50*guiYscale))
                   ;
-    */                 
+    stepModeRadio = cp5.addRadioButton("stepModeRadio")
+       .setPosition((int)(10*guiXscale),(int)(20*guiYscale))
+       .setItemWidth((int)(40*guiXscale))
+       .setItemHeight((int)(40*guiYscale))
+       //.setFont(font1)
+       .addItem("stepMode", 0)
+       .setColorLabel(color(255))
+       //.activate(0)
+       .moveTo(g5)
+       .plugTo(parent, "stepModeRadio");
+       ;   
+     
+      cp5.addBang("Step")
+     .setPosition((int)(100*guiXscale),(int)(20*guiYscale))
+     .setSize((int)(40*guiXscale),(int)(40*guiYscale))
+     //.setFont(font1)
+     .setLabel("Step")
+     .moveTo(g5)
+     .plugTo(parent,"stepToNextIteration")
+     ;
+     
     // create a new accordion
     // add g1, g2, and g3 to the accordion.
     accordion = cp5.addAccordion("acc")
@@ -312,7 +333,7 @@ void setupGUIControls (PApplet parent) {
                    .addItem(g2)
                    .addItem(g3)
                    .addItem(g4)
-                   //.addItem(g5)
+                   .addItem(g5)
                    ;
                    
     cp5.mapKeyFor(new ControlKey() {public void keyEvent() {accordion.open(0,1,2);}}, 'o');
@@ -323,7 +344,7 @@ void setupGUIControls (PApplet parent) {
     cp5.mapKeyFor(new ControlKey() {public void keyEvent() {accordion.setCollapseMode(ControlP5.SINGLE);}}, '4');
     cp5.mapKeyFor(new ControlKey() {public void keyEvent() {cp5.remove("myGroup1");}}, '0');
     
-    accordion.open(0,1,2,3);
+    accordion.open(0,1,2,3,4);
     
     // use Accordion.MULTI to allow multiple group 
     // to be open at a time.
@@ -379,6 +400,20 @@ void playpauseradio(int theC) {
 
    }
 }
+
+void stepModeRadio(int theC) { 
+    println("Step Mode radio control:" + stepModeRadio.getItem(0).getState());
+    
+    if ( stepModeRadio.getItem(0).getState()) {
+       stepmode = true;
+       println("step mode on");
+    }
+    else {
+      stepmode = false;
+      println("step mode off");
+   }
+}
+
 
 
 void LoadNewImage() {
@@ -549,6 +584,13 @@ void resetSystems()
 
 }
 
+//  if stepmode is on then bang allows simulation to step through one iteration
+void stepToNextIteration()
+{
+  
+  stepthrough = true;  //stepthrough is set to 
+  println("stepthrough = true");
+}
 
 void mousePressed(){
   
@@ -661,11 +703,6 @@ int convertToGrayScale(color c)
     return grey;
 }
 
-void computeInertiaOfBaseImage()
-{
-  
-  
-}
 
 void computeGrayScaleBaseImagePixels(){
     color c;

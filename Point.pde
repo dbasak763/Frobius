@@ -2,6 +2,7 @@
 class Point 
 {
    float x, y;
+   float next_x, next_y; // temporarily stores  the next (x,y) where point will move to, used to help step through each iteration
    PVector netForce;
    PVector velocity;
    int myindexingloballist; //point's index in global list, temporary variable that is recomputed at start of every iteration to efficiently get the index of point, 
@@ -10,8 +11,9 @@ class Point
    
    Point(float px, float py, PointSystem parent)
    {
-      x = px;
-      y = py;
+      x = next_x = px;
+      y = next_y = py;
+      
       //mass = 1.0;
 
       parentps = parent;
@@ -63,11 +65,11 @@ class Point
       
       //translate point and constrain to screen
             
-      x += velocity.x;
-      y += velocity.y;
+      next_x = x + velocity.x;
+      next_y = y + velocity.y;
       
-      x = constrain(x, parentps.top_left_X, parentps.bottom_right_X); //contrain the point within the bounding box of the point system
-      y = constrain(y, parentps.top_left_Y, parentps.bottom_right_Y); //contrain the point within the bounding box of the point system
+      next_x = constrain(next_x, parentps.top_left_X, parentps.bottom_right_X); //contrain the point within the bounding box of the point system
+      next_y = constrain(next_y, parentps.top_left_Y, parentps.bottom_right_Y); //contrain the point within the bounding box of the point system
 
    }
 

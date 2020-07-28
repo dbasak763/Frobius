@@ -11,6 +11,12 @@ boolean createPointSystem = true; // create Spiral Path
 boolean showParticleSystem = true; // show ParticleSystems
 boolean showPointSystem = true; // show SpiralPaths
 
+// the 2 variables below allow user to get into a step mode
+// and then do a bang to move to next step.
+// and see how the points are going to move at the end of the iteration.
+boolean stepmode = false; // allows user to step 
+boolean stepthrough = false;
+
 
 //force related variabales
 float   max_acceleration = 0.0; // a particle/point picks a random acceleration less than this
@@ -43,7 +49,8 @@ void draw() {
   
   drawGUIBackground();
   
-  if (baseimg != null){
+  if (baseimg != null)           // go in if baseimg exists
+  {
     
       if(showImage) 
       {
@@ -71,20 +78,20 @@ void draw() {
       int tot_points = 0;
       if(showPointSystem)
       {
-       
-         for(PointSystem ps: spirals)
-         {
-           noFill();
-           if (ps != null){
-              ps.getReadyForNextIteration();
-              ps.computeNetForceandNewPositionofPoints();
-              ps.display();
-              tot_points += ps.points.size();
-            }        
-         }
+           for(PointSystem ps: spirals)
+           {
+             if (ps != null){
+                 if (!stepmode || stepthrough) { //  go in if stepmode is not on, or stepmode is on and stepthrough is set
+                    ps.getReadyForNextIteration();
+                    ps.computeNetForceandNewPositionofPoints();
+                 }
+               ps.display();
+               tot_points += ps.points.size();
+             }        
+           }
+           if (stepmode) stepthrough = false;  // if step mode set setpthrough to flase, so user has to bang "step" to set this varible to true;
       }
       
-      myTextlabelA.setText("FrameCount: " + frameCount);
       myTextlabelB.setText("Points: " + tot_points); 
    }
    else {   // no base image
@@ -92,7 +99,8 @@ void draw() {
     text("First load an image. Then you can click, drag, release to create a bounding box inside image. \n Depending on whether you selected an emitter or a Point system, one will be generated inside the bounding box.\n You can repeat to create multiple systems and mix and match.\n You can also just click anywhere inside the image to create a system covering the full image.", GUIWidth + (width-GUIWidth)/2, height/2);
 
   }
-    
+  
+  myTextlabelA.setText("FrameCount: " + frameCount);
 }
 
 

@@ -95,13 +95,17 @@ class PointSystem
     void display()
     {        
         if (display_points){
+          fill(0);   // black points
           for(Point p: points)
           {
              ellipse(p.x, p.y, 2.0, 2.0);
           } 
         }
-        
+       
+
        if (display_lines) {
+         noFill();
+         stroke (0);
          beginShape();
          for(Point p: points)
          {
@@ -110,6 +114,16 @@ class PointSystem
          }
          vertex(points.get(0).x, points.get(0).y);
          endShape();
+       }
+       
+       if (stepmode) {
+         noFill();
+         stroke (255, 0, 0);  // Use 'redValue' in new fill;
+         for(Point p: points)
+         {
+           line(p.x, p.y, p.next_x, p.next_y);
+           
+         }
        }
        
     }
@@ -619,11 +633,14 @@ class PointSystem
           
           Point p = points.get(i);
           
-          //map points to tiles
+          //set the next position of point
+          p.x = p.next_x;  
+          p.y = p.next_y;
+          
+          //map next location of point to tiles
           InsertPointIntoTileItisOn(p);
-               // also reset the netforce and velocity on a point for next iteration
-          //println("netForce: " + p.netForce);
-          //println("velocity: " + p.velocity);
+          // also reset the netforce and velocity on a point for next iteration
+
           p.netForce.set(0.0,0.0);
           p.velocity.set(0.0,0.0);
           
