@@ -10,7 +10,7 @@ float guiXscale,  guiYscale;
 color c = color(0, 160, 100);  // not related to program, can be removed
 CheckBox forceCheckBox, displayCheckbox;
 RadioButton playpauseRadio, showhideRadio, particlePointRadio, stepModeRadio;
-Textlabel myTextlabelA, myTextlabelB;
+Textlabel myTextlabelA, myTextlabelB, myTextlabelC, myTextlabelD, myTextlabelE, myTextlabelF, myTextlabelG;
 
 //variables to input from screen a start & end points (x,y) of a box from user to bound a emitter or particle system
 float new_box_startx, new_box_starty, new_box_endx, new_box_endy; 
@@ -70,7 +70,7 @@ void setupGUIControls (PApplet parent) {
     Group g1 = cp5.addGroup("Image Knobs") //<>//
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(165*guiYscale)) //<>//
+                  .setBackgroundHeight((int)(160*guiYscale)) //<>//
                   ;
         
     cp5.addBang("LoadNewImage")
@@ -83,7 +83,7 @@ void setupGUIControls (PApplet parent) {
        ;
   
       showhideRadio = cp5.addRadioButton("showhideimageradio")
-       .setPosition((int)(10*guiXscale),(int)(95*guiYscale))
+       .setPosition((int)(10*guiXscale),(int)(90*guiYscale))
        .setItemWidth((int)(40*guiXscale))
        .setItemHeight((int)(40*guiYscale))
        //.setFont(font1)
@@ -105,9 +105,11 @@ void setupGUIControls (PApplet parent) {
        .moveTo(g1)
        .plugTo(parent, "playpauseradio");
        ;   
+       
+    cp5.addFrameRate().setInterval(10).setPosition((int)(130*guiXscale),(int)(95*guiYscale)).moveTo(g1);
 
     cp5.addSlider("myframerate")
-       .setPosition((int)(130*guiXscale),(int)(110*guiYscale))
+       .setPosition((int)(130*guiXscale),(int)(105*guiYscale))
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
        .setLabel("FrameRate")
@@ -126,12 +128,11 @@ void setupGUIControls (PApplet parent) {
         .moveTo(g1);
       ;
        
-    cp5.addFrameRate().setInterval(10).setPosition((int)(130*guiXscale),(int)(95*guiYscale)).moveTo(g1);
          
-    Group g2 = cp5.addGroup("Emitter & Particle System Knobs")
+    Group g2 = cp5.addGroup("Emitter & Point System Knobs")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
-                  .setBackgroundHeight((int)(230*guiYscale))
+                  .setBackgroundHeight((int)(120*guiYscale))
                   ;
 
     particlePointRadio = cp5.addRadioButton("particle_points_radio")
@@ -149,84 +150,138 @@ void setupGUIControls (PApplet parent) {
      ;
      
     cp5.addBang("reset")
-     .setPosition((int)(130*guiXscale),(int)(20*guiYscale))
+     .setPosition((int)(120*guiXscale),(int)(20*guiYscale))
      .setSize((int)(40*guiXscale),(int)(40*guiYscale))
      //.setFont(font1)
      .setLabel("Reset")
      .moveTo(g2)
      .plugTo(parent,"resetSystems")
      ;
-     
-    myTextlabelB = cp5.addTextlabel("label1")
-        .setText("Points: ")
-        .setPosition((int)(200*guiXscale),(int)(40*guiYscale))
-        //.setColorValue(0xffffff00)
-        //.setFont(createFont("Georgia",20))
-        .moveTo(g2);
-      ;     
-     
+          
     displayCheckbox = cp5.addCheckBox("displaycheckBox")
-      .setPosition((int)(10*guiXscale), (int)(100*guiYscale))
+      .setPosition((int)(200*guiXscale), (int)(20*guiYscale))
       .setSize((int)(40*guiXscale), (int)(40*guiYscale))
-      .setItemsPerRow(2)
+      .setItemsPerRow(1)
       .setSpacingColumn((int)(80*guiXscale))
-      .setSpacingRow((int)(25*guiYscale))
-      .addItem("Display Points", 1)
-      .addItem("Display Lines", 1)
+      .setSpacingRow((int)(5*guiYscale))
+      .addItem("Disp Points", 1)
+      .addItem("Disp Lines", 1)
       .moveTo(g2)
       .plugTo(parent,"controlEvent")
       ;
     displayCheckbox.activateAll();
-   
-    cp5.addSlider("DistBetweenPoints")
-       .setPosition((int)(10*guiXscale),(int)(160*guiYscale))
-       .setSize((int)(100*guiXscale),(int)(20*guiYscale))
-       //.setFont(font1)
-       .setLabel("D_betweenPoints")
-       .setRange(10,510)
-       .setValue(200)
-       .setNumberOfTickMarks(11)       
-       .moveTo(g2)
-       .plugTo(parent,"controlEvent")
-       ;      
-      
-    
-       
-   cp5.addSlider("AttractRepelK0")
-     .setPosition((int)(10*guiXscale),(int)(190*guiYscale))
-     .setSize((int)(100*guiXscale),(int)(20*guiYscale))
-     //.setFont(font1)
-     .setLabel("k0")
-     .setRange(0.1, 0.3)
-     .setValue(0.1)
-     .setNumberOfTickMarks(2)
-     .moveTo(g2)
-     .plugTo(parent,"controlEvent")
 
-    ;                      
+
        
-       
-       
-       
-    Group g3 = cp5.addGroup("Force Knobs")
+    Group g3 = cp5.addGroup("Point System Specific Knobs")
                   .setFont(font1)
                   .setBackgroundColor(color(0, 64))
-                  .setBackgroundHeight((int)(130*guiYscale))
+                  .setBackgroundHeight((int)(280*guiYscale))
                   ;
-       
+
     forceCheckBox = cp5.addCheckBox("checkBox")
                 .setPosition((int)(10*guiXscale), (int)(10*guiYscale))
                 .setSize((int)(40*guiXscale), (int)(40*guiYscale))
-                .setItemsPerRow(2)
-                .setSpacingColumn(80)
-                .setSpacingRow((int)(25*guiYscale))
+                .setItemsPerRow(1)
+                .setSpacingColumn((int)(80*guiXscale))
+                .setSpacingRow((int)(15*guiYscale))
                 .addItem("Brownian Motion", 0)
                 .addItem("Attract Repel", 1)
                 .addItem("Fairing",2)
                 .moveTo(g3)
                 .plugTo(parent,"controlEvent")
                 ;
-               
+     
+    cp5.addSlider("DistBetweenPoints")
+       .setPosition((int)(150*guiXscale),(int)(10*guiYscale))
+       .setSize((int)(100*guiXscale),(int)(20*guiYscale))
+       //.setFont(font1)
+       .setLabel("Dist")
+       .setRange(10,510)
+       .setValue(200)
+       .setNumberOfTickMarks(11)       
+       .moveTo(g3)
+       .plugTo(parent,"controlEvent")
+       ;      
+      
+
+ 
+   cp5.addSlider("AttractRepelK0")
+     .setPosition((int)(150*guiXscale),(int)(50*guiYscale))
+     .setSize((int)(60*guiXscale),(int)(20*guiYscale))
+     //.setFont(font1)
+     .setLabel("K0")
+     .setRange(0.1, 0.3)
+     .setValue(0.1)
+     .setNumberOfTickMarks(2)
+     .moveTo(g3)
+     .plugTo(parent,"controlEvent")
+    ;    
+        
+    myTextlabelC = cp5.addTextlabel("label3")
+        .setText("R0: R1: ")
+        .setPosition((int)(150*guiXscale),(int)(100*guiYscale))
+        .moveTo(g3);
+      ;    
+             
+   myTextlabelD = cp5.addTextlabel("label4")
+        .setText("K1: ")
+        .setPosition((int)(150*guiXscale),(int)(120*guiYscale))
+        .moveTo(g3);
+    ;   
+      
+   myTextlabelE = cp5.addTextlabel("label5")
+        .setText("Delta min and max values")
+        .setPosition((int)(150*guiXscale),(int)(140*guiYscale))
+        //.setColorValue(0xffffff00)
+        //.setFont(createFont("Georgia",20))
+        .moveTo(g3);
+      ;        
+ 
+   myTextlabelF = cp5.addTextlabel("label6")
+        .setText("f_a,   f_b,   f_f values")
+        .setPosition((int)(150*guiXscale),(int)(160*guiYscale))
+        //.setColorValue(0xffffff00)
+        //.setFont(createFont("Georgia",20))
+        .moveTo(g3);
+      ;  
+      
+   myTextlabelB = cp5.addTextlabel("label1")
+        .setText("Total Points: ")
+        .setPosition((int)(150*guiXscale),(int)(180*guiYscale))
+        //.setColorValue(0xffffff00)
+        //.setFont(createFont("Georgia",20))
+        .moveTo(g3);
+      ; 
+      
+   myTextlabelG = cp5.addTextlabel("label7")
+        .setText("d for resampling: ")
+        .setPosition((int)(120*guiXscale),(int)(200*guiYscale))
+        //.setColorValue(0xffffff00)
+        //.setFont(createFont("Georgia",20))
+        .moveTo(g3);
+      ;        
+      
+    stepModeRadio = cp5.addRadioButton("stepModeRadio")
+       .setPosition((int)(10*guiXscale),(int)(225*guiYscale))
+       .setItemWidth((int)(40*guiXscale))
+       .setItemHeight((int)(40*guiYscale))
+       //.setFont(font1)
+       .addItem("Debug", 0)
+       .setColorLabel(color(255))
+       //.activate(0)
+       .moveTo(g3)
+       .plugTo(parent, "stepModeRadio");
+       ;   
+     
+      cp5.addBang("Step")
+     .setPosition((int)(150*guiXscale),(int)(225*guiYscale))
+     .setSize((int)(40*guiXscale),(int)(40*guiYscale))
+     //.setFont(font1)
+     .setLabel("Step")
+     .moveTo(g3)
+     .plugTo(parent,"stepToNextIteration")
+     ;      
     // group number 3, Emitter
     Group g4 = cp5.addGroup("Emitter Specific Knobs")
                   .setBackgroundColor(color(0, 64))
@@ -298,31 +353,12 @@ void setupGUIControls (PApplet parent) {
      .plugTo(parent,"controlEvent")
     ;      
        
-    Group g5 = cp5.addGroup("Point System Debug Mode")
+    /*Group g5 = cp5.addGroup("Point System Debug Mode")
                   .setBackgroundColor(color(0, 64))
                   .setFont(font1)
                   .setBackgroundHeight((int)(50*guiYscale))
                   ;
-    stepModeRadio = cp5.addRadioButton("stepModeRadio")
-       .setPosition((int)(10*guiXscale),(int)(20*guiYscale))
-       .setItemWidth((int)(40*guiXscale))
-       .setItemHeight((int)(40*guiYscale))
-       //.setFont(font1)
-       .addItem("stepMode", 0)
-       .setColorLabel(color(255))
-       //.activate(0)
-       .moveTo(g5)
-       .plugTo(parent, "stepModeRadio");
-       ;   
-     
-      cp5.addBang("Step")
-     .setPosition((int)(100*guiXscale),(int)(20*guiYscale))
-     .setSize((int)(40*guiXscale),(int)(40*guiYscale))
-     //.setFont(font1)
-     .setLabel("Step")
-     .moveTo(g5)
-     .plugTo(parent,"stepToNextIteration")
-     ;
+                  */
      
     // create a new accordion
     // add g1, g2, and g3 to the accordion.
@@ -333,7 +369,7 @@ void setupGUIControls (PApplet parent) {
                    .addItem(g2)
                    .addItem(g3)
                    .addItem(g4)
-                   .addItem(g5)
+                   //.addItem(g5)
                    ;
                    
     cp5.mapKeyFor(new ControlKey() {public void keyEvent() {accordion.open(0,1,2);}}, 'o');
@@ -344,7 +380,7 @@ void setupGUIControls (PApplet parent) {
     cp5.mapKeyFor(new ControlKey() {public void keyEvent() {accordion.setCollapseMode(ControlP5.SINGLE);}}, '4');
     cp5.mapKeyFor(new ControlKey() {public void keyEvent() {cp5.remove("myGroup1");}}, '0');
     
-    accordion.open(0,1,2,3,4);
+    accordion.open(0,1,2,3);
     
     // use Accordion.MULTI to allow multiple group 
     // to be open at a time.
@@ -717,6 +753,11 @@ void computeGrayScaleBaseImagePixels(){
     }
 }
 
+//This and next variables track the min and max delta to show in GUI, not used in force computations
+float delta_min_for_GUI_only = MAX_FLOAT;
+float delta_max_for_GUI_only = MIN_FLOAT;
+
+
 void setScalingAndDeltaFunctionsBasedOnBaseImagePixels(){
     
     f_a = new float[baseimg.width][baseimg.height];
@@ -724,16 +765,20 @@ void setScalingAndDeltaFunctionsBasedOnBaseImagePixels(){
     f_f = new float[baseimg.width][baseimg.height];
 
     delta = new float[baseimg.width][baseimg.height];
-    
+        
     for (int j = 0; j < baseimg.height; j++){
       for (int i = 0; i < baseimg.width; i++){   
-          f_b[i][j] = 0.2; //or 0
-          f_f[i][j] = 0.3;//or 0.005
-          f_a[i][j] = 1; // or 0
+          f_b[i][j] = F_B; //or 0
+          f_f[i][j] = F_F;//or 0.005
+          f_a[i][j] = F_A; // 10 or 0
+          
           float delta_based_on_grayscale = (grayScaleImage[i][j] + 1) / 256;
           delta_based_on_grayscale = ceil(delta_based_on_grayscale/0.05)/20.0;
-          
           delta[i][j] = delta_based_on_grayscale; //1.00 or 0.02
+          
+          //This and next variables track the min and max delta to show in GUI
+          delta_min_for_GUI_only = min (delta_min_for_GUI_only, delta_based_on_grayscale);  
+          delta_max_for_GUI_only = max (delta_max_for_GUI_only, delta_based_on_grayscale);  
 
       }
     }              
@@ -829,28 +874,7 @@ void compute_PartialDerivativesOfBaseImagePixelWRTAdjacentPixels()
   }
 }
 
-/*
-          if (printpixelgradients) {
-              if (i >=200 && i <=204 && j >= 142 && j <= 148) {
-                s  += " " + nf(convertToGrayScale(baseimg.get(i, j)), 7);
-                s0 +=  " "; if (adjPixelsDerivatives[i][j][0] >= 0) s0 += "+"; s0 += nf(adjPixelsDerivatives[i][j][0], 3,2);
-                s1 +=  " "; if (adjPixelsDerivatives[i][j][1] >= 0) s1 += "+"; s1 += nf(adjPixelsDerivatives[i][j][1], 3,2);
-                s2 +=  " "; if (adjPixelsDerivatives[i][j][2] >= 0) s2 += "+"; s2 += nf(adjPixelsDerivatives[i][j][2], 3,2);
-                s3 +=  " "; if (adjPixelsDerivatives[i][j][3] >= 0) s3 += "+"; s3 += nf(adjPixelsDerivatives[i][j][3], 3,2);
-                s4 +=  " "; if (adjPixelsDerivatives[i][j][4] >= 0) s4 += "+"; s4 += nf(adjPixelsDerivatives[i][j][4], 3,2);
-                s5 +=  " "; if (adjPixelsDerivatives[i][j][5] >= 0) s5 += "+"; s5 += nf(adjPixelsDerivatives[i][j][5], 3,2);
-                s6 +=  " "; if (adjPixelsDerivatives[i][j][6] >= 0) s6 += "+"; s6 += nf(adjPixelsDerivatives[i][j][6], 3,2);
-                s7 +=  " "; if (adjPixelsDerivatives[i][j][7] >= 0) s7 += "+"; s7 += nf(adjPixelsDerivatives[i][j][7], 3,2);
-    
-                if (i== 204){
-                  s += "\n"; s0 += "\n"; s1 += "\n"; s2 += "\n"; s3 += "\n"; s4 += "\n"; s5 += "\n"; s6 += "\n"; s7 += "\n";
-                }
-              }
-          }
-          if (printpixelgradients) println (s); println (s0); println (s1); println (s2); println (s3); println (s4); println (s5); println (s6); println (s7); 
-
-*/
-  //for a pixel location, map the direction of the force vector to a octant, and the octant determines which of the 8 gradients from the pixel will be used
+//for a pixel location, map the direction of the force vector to a octant, and the octant determines which of the 8 gradients from the pixel will be used
 int MapVectorToGradientIndex(PVector vector)
 {
      

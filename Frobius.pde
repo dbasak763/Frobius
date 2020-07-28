@@ -35,8 +35,12 @@ float kmax = 1.2;
 
 boolean has_fairing = false;
 
+float F_A = 1.0;  // for now this value is used as scaling for attraction for all points
+float F_B = 0.2;  // for now this value is used as scaling for brownian for all points
+float F_F = 0.3;  // for now this value is used as scaling for fairing for all points
+
 float[][][] adjPixelsDerivatives;
-float[][]   f_a, f_b, f_f;  // scaling functions for AR, Brownian, and Fairing, respectively
+float[][]   f_a, f_b, f_f;  // scaling functions for AR, Brownian, and Fairing, respectively, for now F_A, F_B, F_B is used for all points
 float[][]   delta;
 float[][]   grayScaleImage;
 
@@ -92,7 +96,12 @@ void draw() {
            if (stepmode) stepthrough = false;  // if step mode set setpthrough to flase, so user has to bang "step" to set this varible to true;
       }
       
-      myTextlabelB.setText("Points: " + tot_points); 
+      myTextlabelB.setText("Points:  " + tot_points); 
+      myTextlabelE.setText("Delta:  " +  delta_min_for_GUI_only + " (min),    " + delta_max_for_GUI_only + " (max)");
+      myTextlabelF.setText("fa :  " +  F_A + ",   f_b :  " + F_B + ",   f_f : " + F_F);
+      myTextlabelG.setText("d for resampling:  " +  nf(D*kmin*delta_min_for_GUI_only,0,1) + " (min),    " + nf(D*kmax*delta_max_for_GUI_only,0,1) + " (max)");
+
+      
    }
    else {   // no base image
     textAlign(CENTER);
@@ -101,6 +110,9 @@ void draw() {
   }
   
   myTextlabelA.setText("FrameCount: " + frameCount);
+  myTextlabelC.setText("R0:  " + (int) R0 + ",     R1:  " + (int) R1);
+  myTextlabelD.setText("K1:  " +  (2.5 * (float) cp5.getController("AttractRepelK0").getValue()) );
+
 }
 
 
