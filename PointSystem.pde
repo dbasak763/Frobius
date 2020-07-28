@@ -136,7 +136,7 @@ class PointSystem
     
     Point p2neighbor;
     PVector ARforce = new PVector(0.0, 0.0);
-    float d; //d is distance from p1 to closestpoint on p2 -> p2neighbor line segment
+    float d_closest; //d is distance from p1 to closestpoint on p2 -> p2neighbor line segment
         
     if(p2.myindexingloballist == 0) p2neighbor = points.get(points.size() - 1); //if points  form closed loop
     else p2neighbor = points.get(p2.myindexingloballist - 1);
@@ -154,16 +154,16 @@ class PointSystem
     //find intersection point from p1 to line segment p2 -> p2neighbor
     Point closest_point = findClosestPointFromPointToLineSegment(p1, p2, p2neighbor);
     
-    d = dist(p1.x, p1.y, closest_point.x, closest_point.y); //why is d = 0
+    d_closest = dist(p1.x, p1.y, closest_point.x, closest_point.y); //why is d = 0
     
 
     float delta_p1 = delta[(int)(p1.x - imgTopLeftCorner_X)][(int)p1.y];
     float delta_closest_point = delta[(int)(closest_point.x - imgTopLeftCorner_X)][(int)closest_point.y];
     
     // if |pi - xij| < min(delta(pi), delta(xij)) * R1 return fij
-    if(!(d < (min(delta_p1, delta_closest_point) * R1)))
+    if(!(d_closest < (min(delta_p1, delta_closest_point) * R1)))
     {
-          if (debug) println("computeAR_forceOnFirstPointFromLineSegmentFromSecondPoint:: delta: " + delta_p1 + " delta_closest_point: " + delta_closest_point + " R1:" + R1 + " d: " + d);
+          if (debug) println("computeAR_forceOnFirstPointFromLineSegmentFromSecondPoint:: delta: " + delta_p1 + " delta_closest_point: " + delta_closest_point + " R1:" + R1 + " d: " + d_closest);
 
           return new PVector(0.0, 0.0);
     }
@@ -174,9 +174,9 @@ class PointSystem
     ARforce.normalize();
  
     //ARforce has magnitude lj_potential, + is repulsion, - is attraction
-    if (debug) println("ARforce: " + ARforce + " delta: " + delta_p1 + " D: " + D + " d: " + d);
+    if (debug) println("ARforce: " + ARforce + " delta: " + delta_p1 + " D: " + D + " d: " + d_closest);
      
-    ARforce.mult(lj_potential(d/(delta_p1))); //check why ARforce is 0 before
+    ARforce.mult(lj_potential(d_closest/(delta_p1))); 
     return ARforce;
   }
   
@@ -214,31 +214,42 @@ class PointSystem
       float d_from_p2neighbor = dist(p2neighbor.x, p2neighbor.y, x_intersect, y_intersect);
 
 
-      //confirm x_intersect, y_intersect are on line segment
-      float chek1 = (x_intersect - p2neighbor.x)*(y_intersect - p2.y);
-      float chek2 = (x_intersect - p2.x)*(y_intersect - p2neighbor.y);
-      
-      if (abs(chek1 - chek2) > 0.01) { // .01 seems to be ok, but do hit this check more if 0.001 or smaller is used
-              if (debug1) print("p1: " + p1.x + ", " + p1.y + " p2: " + p2.x + ", " + p2.y + " p2neighbor: " + p2neighbor.x + ", " + p2neighbor.y + " rise" + rise + " run" + run + " x_intersect: " + x_intersect + " y_intersect: " + y_intersect + " d_from_p2:" + d_from_p2 + " d_from_p2neighbor: " + d_from_p2neighbor );
-      }
-      
+ 
       //d from p_intersect to p2neighbor
       if(d_from_p2 < d && d_from_p2neighbor < d)//point is within line segment
       {
-           if (debug)println (" return intersect");
+           if ( (abs(d - d_from_p2neighbor - d_from_p2) > d*0.01)) {  //confirm x_intersect, y_intersect is on line segment and within precision bounds of 1%
+
+              if (debug1) {
+                 println("Intersection point is closest"); 
+                 p1.printPointDetails();
+                 p2.printPointDetails();
+                 p2neighbor.printPointDetails();
+                 println("Intersection: (" + x_intersect + ", " + y_intersect + ")");
+                 println("rise " + rise + ", run " + run + ", d_p2_p2neighbor " + d + ", d_from_p2:" + d_from_p2 + ", d_from_p2neighbor: " + d_from_p2neighbor + "\n----------");
+              }
+           }
            return new Point(x_intersect, y_intersect, this);
       }
       else //points is not within line segment
       {
+        
+           if ( (abs(d_from_p2neighbor - d_from_p2) - d) > d*0.01) {  //confirm x_intersect, y_intersect is outside line segment and within precision bounds of 1% of expected distance calculation
+
+              if (debug1) {
+                 println("Intersection point is NOT closest"); 
+                 p1.printPointDetails();
+                 p2.printPointDetails();
+                 p2neighbor.printPointDetails();
+                 println("Intersection: (" + x_intersect + ", " + y_intersect + ")");
+                 println("rise " + rise + ", run " + run + ", d_p2_p2neighbor " + d + ", d_from_p2:" + d_from_p2 + ", d_from_p2neighbor: " + d_from_p2neighbor + "\n----------");
+              }
+           }        
            if(d_from_p2 > d_from_p2neighbor) 
            {
-               if (debug)println (" return p2neighbor");
-
-               return p2neighbor; 
+             return p2neighbor; 
            }
            else{
-             if (debug)println (" return p2");
-
              return p2;
            }
         
@@ -249,15 +260,13 @@ class PointSystem
   
   //LJ-Potential Function, + is repulsion, - is attraction
   
-  //    r           0.1   0.5   1   1.122     2.5        10
-  // sigma_lj / r    10     2   1   0.891     0.4        0.1
-  //    w          10^12  4032  0   -0.25   -0.004       0
+  // r/R0                    0.1   0.5   0.75  0.909    1   1.122     2.5        10
+  // sigma_lj (or R0) / r    10     2   1.33    1.1     1   0.891     0.4        0.1
+  //    w                   10^12  4032   26   1.366    0   -0.25   -0.004       0
   float lj_potential(float r)
   {
- 
-    if (debug) println("lj_potential: r: " + r);
-    
-    if(r < 0.5)  r = 0.5;  // bounding the largest replusion that lj potential
+     
+    if(r/R0 < 0.909)  r = 0.909*R0;  // bounding the largest replusion that lj potential
 
     float sigma_LJ = R0; //sigma_LJ is R0 from LJ formula
     

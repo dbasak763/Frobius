@@ -69,7 +69,7 @@ class Point
       
       if (debug1){
         if (dist(x,y, next_x, next_y) > 200) 
-          println("netForce: " + netForce.x + " " + netForce.y + " velocity:(" + velocity.x + "," + velocity.y + ")");
+          println("Point [" + myindexingloballist + "]  netForce: (" + netForce.x + " " + netForce.y + "); velocity: (" + velocity.x + "," + velocity.y + ")");
       }
     
       next_x = constrain(next_x, parentps.top_left_X, parentps.bottom_right_X); //contrain the point within the bounding box of the point system
