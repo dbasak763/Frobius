@@ -60,14 +60,18 @@ class Point
          exit();
       }
       
-      if (debug) println("netForce: " + netForce.x + " " + netForce.y + " velocity:(" + velocity.x + "," + velocity.y + ")");
-      
-      
+       
       //translate point and constrain to screen
             
       next_x = x + velocity.x;
       next_y = y + velocity.y;
       
+      
+      if (debug1){
+        if (dist(x,y, next_x, next_y) > 200) 
+          println("netForce: " + netForce.x + " " + netForce.y + " velocity:(" + velocity.x + "," + velocity.y + ")");
+      }
+    
       next_x = constrain(next_x, parentps.top_left_X, parentps.bottom_right_X); //contrain the point within the bounding box of the point system
       next_y = constrain(next_y, parentps.top_left_Y, parentps.bottom_right_Y); //contrain the point within the bounding box of the point system
 

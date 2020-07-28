@@ -151,7 +151,7 @@ void setupGUIControls (PApplet parent) {
      
     cp5.addBang("reset")
      .setPosition((int)(120*guiXscale),(int)(20*guiYscale))
-     .setSize((int)(40*guiXscale),(int)(40*guiYscale))
+     .setSize((int)(40*guiXscale),(int)(50*guiYscale))
      //.setFont(font1)
      .setLabel("Reset")
      .moveTo(g2)
@@ -187,6 +187,7 @@ void setupGUIControls (PApplet parent) {
                 .setSpacingRow((int)(15*guiYscale))
                 .addItem("Brownian Motion", 0)
                 .addItem("Attract Repel", 1)
+                .addItem("Anisotropy", 3)
                 .addItem("Fairing",2)
                 .moveTo(g3)
                 .plugTo(parent,"controlEvent")
@@ -197,9 +198,9 @@ void setupGUIControls (PApplet parent) {
        .setSize((int)(100*guiXscale),(int)(20*guiYscale))
        //.setFont(font1)
        .setLabel("Dist")
-       .setRange(10,510)
+       .setRange(50,500)
        .setValue(200)
-       .setNumberOfTickMarks(11)       
+       .setNumberOfTickMarks(10)       
        .moveTo(g3)
        .plugTo(parent,"controlEvent")
        ;      
@@ -247,8 +248,8 @@ void setupGUIControls (PApplet parent) {
       ;  
       
    myTextlabelB = cp5.addTextlabel("label1")
-        .setText("Total Points: ")
-        .setPosition((int)(150*guiXscale),(int)(180*guiYscale))
+        .setText("Point Count: ")
+        .setPosition((int)(10*guiXscale),(int)(230*guiYscale))
         //.setColorValue(0xffffff00)
         //.setFont(createFont("Georgia",20))
         .moveTo(g3);
@@ -256,18 +257,18 @@ void setupGUIControls (PApplet parent) {
       
    myTextlabelG = cp5.addTextlabel("label7")
         .setText("d for resampling: ")
-        .setPosition((int)(120*guiXscale),(int)(200*guiYscale))
+        .setPosition((int)(150*guiXscale),(int)(180*guiYscale))
         //.setColorValue(0xffffff00)
         //.setFont(createFont("Georgia",20))
         .moveTo(g3);
       ;        
       
     stepModeRadio = cp5.addRadioButton("stepModeRadio")
-       .setPosition((int)(10*guiXscale),(int)(225*guiYscale))
+       .setPosition((int)(150*guiXscale),(int)(215*guiYscale))
        .setItemWidth((int)(40*guiXscale))
        .setItemHeight((int)(40*guiYscale))
        //.setFont(font1)
-       .addItem("Debug", 0)
+       .addItem("StepMode\nOn/off", 0)
        .setColorLabel(color(255))
        //.activate(0)
        .moveTo(g3)
@@ -275,10 +276,10 @@ void setupGUIControls (PApplet parent) {
        ;   
      
       cp5.addBang("Step")
-     .setPosition((int)(150*guiXscale),(int)(225*guiYscale))
-     .setSize((int)(40*guiXscale),(int)(40*guiYscale))
+     .setPosition((int)(240*guiXscale),(int)(215*guiYscale))
+     .setSize((int)(40*guiXscale),(int)(50*guiYscale))
      //.setFont(font1)
-     .setLabel("Step")
+     .setLabel("Next Step")
      .moveTo(g3)
      .plugTo(parent,"stepToNextIteration")
      ;      
@@ -522,6 +523,11 @@ void controlEvent(ControlEvent theEvent) {
                      else has_fairing = false;
                      println ("Fairing set to " + has_fairing);
                      break;
+            case 3:  
+                     if (n==1) has_anisotropy = true;
+                     else has_anisotropy = false;
+                     println ("Anisotropy set to " + has_anisotropy);
+                     break;                     
             case 5:  
                      break;
             case 6:  

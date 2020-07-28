@@ -3,7 +3,7 @@ int lifespan;
 int numParticles = 0;
 float unit_of_time = 1.0;
 boolean debug = false;
-boolean debug1 = false;
+boolean debug1 = true;
 
 boolean showImage = true;
 boolean createParticleSystem = false; // create Particle System
@@ -26,6 +26,7 @@ float   coeff_friction = 0.25;//coefficient of friction
 int n_min = 2;
 
 boolean has_attractionrepulsion = false;
+boolean has_anisotropy = false;
 float   D;//controlled by user, D is the average distance between two points
 float   R1 = 0.0; //distance outside which points dont influence each other
 float   R0 = 0.0;  //distance inside which points repel each other
@@ -96,10 +97,10 @@ void draw() {
            if (stepmode) stepthrough = false;  // if step mode set setpthrough to flase, so user has to bang "step" to set this varible to true;
       }
       
-      myTextlabelB.setText("Points:  " + tot_points); 
+      myTextlabelB.setText("Point Count:  " + tot_points); 
       myTextlabelE.setText("Delta:  " +  delta_min_for_GUI_only + " (min),    " + delta_max_for_GUI_only + " (max)");
       myTextlabelF.setText("fa :  " +  F_A + ",   f_b :  " + F_B + ",   f_f : " + F_F);
-      myTextlabelG.setText("d for resampling:  " +  nf(D*kmin*delta_min_for_GUI_only,0,1) + " (min),    " + nf(D*kmax*delta_max_for_GUI_only,0,1) + " (max)");
+      myTextlabelG.setText("d for resampling:  " +  nf(D*kmin*delta_min_for_GUI_only,0,1) + " (min),\n                                 " + nf(D*kmax*delta_max_for_GUI_only,0,1) + " (max)");
 
       
    }

@@ -587,7 +587,9 @@ class PointSystem
       if (has_attractionrepulsion) 
       {
            computeARforces();     
-           updateARforces_w_anisotropy();
+           if (has_anisotropy) { // this is checked if AR is on
+             updateARforces_w_anisotropy();
+           }
       }
       
       //apply forces which do not depend on other points
