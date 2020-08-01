@@ -36,7 +36,7 @@ float kmax = 1.2;
 
 boolean has_fairing = false;
 
-float F_A = 1.0;  // for now this value is used as scaling for attraction for all points
+float F_A = 1;  // for now this value is used as scaling for attraction for all points
 float F_B = 0.2;  // for now this value is used as scaling for brownian for all points
 float F_F = 0.3;  // for now this value is used as scaling for fairing for all points
 
@@ -44,6 +44,9 @@ float[][][] adjPixelsDerivatives;
 float[][]   f_a, f_b, f_f;  // scaling functions for AR, Brownian, and Fairing, respectively, for now F_A, F_B, F_B is used for all points
 float[][]   delta;
 float[][]   grayScaleImage;
+
+int[][] lineSegmentsMappedOnImage; // array used to map current line segments to avoid  a given point movement to cross a line segment,
+boolean constrainMoves = false;
 
 
 float gravity;
@@ -96,7 +99,7 @@ void draw() {
            }
            if (stepmode) stepthrough = false;  // if step mode set setpthrough to flase, so user has to bang "step" to set this varible to true;
       }
-      
+           
       myTextlabelB.setText("Point Count:  " + tot_points); 
       myTextlabelE.setText("Delta:  " +  delta_min_for_GUI_only + " (min),    " + delta_max_for_GUI_only + " (max)");
       myTextlabelF.setText("fa :  " +  F_A + ",   f_b :  " + F_B + ",   f_f : " + F_F);

@@ -13,7 +13,7 @@ RadioButton playpauseRadio, showhideRadio, particlePointRadio, stepModeRadio;
 Textlabel myTextlabelA, myTextlabelB, myTextlabelC, myTextlabelD, myTextlabelE, myTextlabelF, myTextlabelG;
 
 //variables to input from screen a start & end points (x,y) of a box from user to bound a emitter or particle system
-float new_box_startx, new_box_starty, new_box_endx, new_box_endy; 
+int new_box_startx, new_box_starty, new_box_endx, new_box_endy; 
 boolean drawBoxStart = false;
 
 // if user clicks mouse to select a center of a square box to bound an emitter or particle system then used below as as length of square box
@@ -495,6 +495,9 @@ void OperationsAfterBaseImageLoaded(){
     
     println("baseimg.width = " + baseimg.width + ", baseimg.height = " + baseimg.height);
     
+    // array used to map current line segments to avoid  a given point movement to cross a line segment,
+    lineSegmentsMappedOnImage = new int [baseimg.width][baseimg.height]; 
+    
     computeGrayScaleBaseImagePixels();
     setScalingAndDeltaFunctionsBasedOnBaseImagePixels();
     compute_PartialDerivativesOfBaseImagePixelWRTAdjacentPixels();
@@ -666,12 +669,12 @@ void mouseReleased(){
      
      //normalize to left top corner and right bottom corner, user may have picked left bottom and right top 
      if (new_box_endx < new_box_startx){
-       float temp = new_box_endx;
+       int temp = new_box_endx;
        new_box_endx = new_box_startx;
        new_box_startx = temp;
      }
      if (new_box_endy < new_box_starty){
-       float temp = new_box_endy;
+       int temp = new_box_endy;
        new_box_endy = new_box_starty;
        new_box_starty = temp;
      }
@@ -910,4 +913,16 @@ int MapVectorToGradientIndex(PVector vector)
        //println("vector: (" + vector.x + "," + vector.y + ") Angle = " + theta + " Index = " + index);
 
        return index; //should not reach here
+}
+
+void clearLineSegmentsMappedOnImageArray()
+{
+  if (lineSegmentsMappedOnImage != null)
+  {
+    for (int j = 0; j < baseimg.height; j++){
+      for (int i = 0; i < baseimg.width; i++){   
+        lineSegmentsMappedOnImage[i][j] = - MAX_INT;
+      }
+    }
+  }
 }

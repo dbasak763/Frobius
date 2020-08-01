@@ -17,14 +17,14 @@ class PointSystem
     float tileSideLen;
     
     //the top_Left_X and top_Left_Y in the parameters for Spiral() are the top left corner of the rectBox
-    float top_left_X, top_left_Y, bottom_right_X, bottom_right_Y;//box region that user picks on image 
+    int top_left_X, top_left_Y, bottom_right_X, bottom_right_Y;//box region that user picks on image 
     
-    float begin_X, begin_Y, end_X, end_Y; //tracks the center of spiral and end point of spiral 
-    float current_X, current_Y; //tracks the current position in spiral drawing, starts with center of box
+    int begin_X, begin_Y, end_X, end_Y; //tracks the center of spiral and end point of spiral 
+    int current_X, current_Y; //tracks the current position in spiral drawing, starts with center of box
         
     int distanceX, distanceY; // x and y _displacement between initial spiral arrangement of points
 
-    PointSystem (float topLeft_X, float topLeft_Y, float bottomRight_X, float bottomRight_Y)
+    PointSystem (int topLeft_X, int topLeft_Y, int bottomRight_X, int bottomRight_Y)
     {       
              
        //box region that user picks on image, the box includes the 4 points, we do not have to substract 1 from anything as in 0 + L -1 for something tha is L long
@@ -122,9 +122,31 @@ class PointSystem
          for(Point p: points)
          {
            line(p.x, p.y, p.next_x, p.next_y);
-           
          }
+         
+         
+         if (constrainMoves)
+         {
+           fill (0, 0, 220);
+           stroke (0, 0, 220);
+            for (int j = 0; j < baseimg.height; j++){
+              for (int i = 0; i < baseimg.width; i++){   
+                if (lineSegmentsMappedOnImage[i][j] != -MAX_INT)  ellipse(i+ imgTopLeftCorner_X, j, 0.5, 0.5); 
+              }
+            } 
+            
+           stroke(0,220,0);
+           fill (0, 220,0); //green
+           for(Point p: points)
+           {
+             ellipse(p.constrained_next_x, p.constrained_next_y, 2.0, 2.0); 
+           }
+                       
+         }
+         
        }
+       
+      
        
     }
     
@@ -177,6 +199,7 @@ class PointSystem
     if (debug) println("ARforce: " + ARforce + " delta: " + delta_p1 + " D: " + D + " d: " + d_closest);
      
     ARforce.mult(lj_potential(d_closest/(delta_p1))); 
+         
     return ARforce;
   }
   
@@ -340,7 +363,7 @@ class PointSystem
                          exit();
                        }
                        
-                       p1.netForce.add(force);  //accumulate AR force for point, we can use netforce to accumulate since we are doing AR force computation first                     
+                       p1.ARForce.add(force);  //accumulate AR force for point                     
            }
        }
    }
@@ -422,7 +445,26 @@ class PointSystem
            
          }
        }
-         
+       
+       // all AR forces are now computed, apply the AR scaling
+        for(Point p : points)
+        {
+             if (p.ARForce.mag() == 0.0) continue;
+            
+             //get x and y location on image for point p
+            int x = (int) (p.x - imgTopLeftCorner_X);    int y = (int) p.y;
+             p.ARForce.mult(f_a[x][y]);  // this is the only point when we are sure that all the AR forces on a point have been computed and accumulated, so apply f_a scaling
+
+             if(Float.isNaN(p.ARForce.x) || Float.isNaN(p.ARForce.y))
+             {
+                   println("computeARforces(): p.ARForce after AR " + p.ARForce);
+                   print("    "); p.printPointDetails();
+             }
+             
+    
+             if (p.ARForce.mag() > 100) 
+                 println("Point [" + p.myindexingloballist + "] large AR: " + p.ARForce.mag());
+        }
     }
     //at sample point pi, for line segment pi -> pi+1
     //dmax = kmax * D * (delta(pi) + delta(pi+1)) / 2
@@ -433,6 +475,18 @@ class PointSystem
     {
         
         Point p, p_left, p_right;
+        
+        /*//debug
+        for(int i = 0; i < points.size(); i++)
+        {
+           p = points.get(i);
+           p.myindexingloballist = i;
+           p.printPointDetails();
+           p.just_added = false;
+
+        }
+        */
+        
         //since line segments form closed loop, boundary points are considered
         for(int i = 0; i < points.size(); i++)
         {
@@ -454,22 +508,44 @@ class PointSystem
             
             p = points.get(i);
             
+            /*println ("---Resample: Point, Right, Left:");
+            p.printPointDetails();
+            p_right.printPointDetails();
+            p_left.printPointDetails();
+            */
+            
             //if dist(p, p_right) > dmax, insert intermediate point
-            float delta_p_i = delta[(int)(p.x - imgTopLeftCorner_X)][(int)p.y];
-            float delta_p_right = delta[(int)(p_right.x - imgTopLeftCorner_X)][(int)p_right.y];
-            float delta_p_left = delta[(int)(p_left.x - imgTopLeftCorner_X)][(int)p_left.y];
+            float delta_p_i = delta[(int)p.x - imgTopLeftCorner_X][(int)p.y];
+            float delta_p_right = delta[(int)p_right.x - imgTopLeftCorner_X][(int)p_right.y];
+            float delta_p_left = delta[(int)p_left.x - imgTopLeftCorner_X][(int)p_left.y];
             
             float d_max = kmax * D * (delta_p_i + delta_p_right) / 2;
             float d_min_left = kmin * D * (delta_p_i + delta_p_left) / 2;
-            float d_min_right = kmax * D * (delta_p_i + delta_p_right) / 2;
+            float d_min_right = kmin * D * (delta_p_i + delta_p_right) / 2;
             
             float dist_to_left_point = dist(p_left.x, p_left.y, p.x, p.y);
             float dist_to_right_point = dist(p.x, p.y, p_right.x, p_right.y);
             
-            if( dist_to_right_point > d_max){                      
+            if( dist_to_right_point > d_max){              
+              
+                 /*// debug before
+                 println ("---Resample: about to insert a point between :");
+                 p.printPointDetails();
+                 p_right.printPointDetails();
+                 */
                  
-                 Point p_interim = new Point ((p.x + p_right.x)/2, (p.y + p_right.y)/2, this) ;
+                 //real code
+                 Point p_interim = new Point ((p.x + p_right.x)/2, (p.y + p_right.y)/2, this) ;                 
                  points.add(i + 1, p_interim);
+                 
+                 /*//debug after
+                 println ("Resample: after insert a point between :");
+                 points.get(i).printPointDetails();
+                 points.get(i+1).printPointDetails();
+                 */
+                 
+                 i +=1; // do not consider the new point added in this iteration again, else can cause a binary addition of points if on black, halving the distance
+
             }
             
 
@@ -480,12 +556,21 @@ class PointSystem
                 i -= 1; // to ensure that we dont skip the point i+1 in the loop that has now become i 
             }
         }
+        
+        /*//debug
+        for(int i = 0; i < points.size(); i++)
+        {
+           p = points.get(i);
+           p.myindexingloballist = i;
+           if (p.just_added) print ("+ "); p.printPointDetails();
+
+        }
+        */
       
     }
     
     void fairing()
     {
-         int p_index, p_index_left, p_index_right;
          Point p, p_left, p_right;
          
          float delta_p, delta_p_left, delta_p_right, denom, weighted_average_x, weighted_average_y;
@@ -510,7 +595,7 @@ class PointSystem
              fairing_vec.set(weighted_average_x - p.x, weighted_average_y - p.y);
              fairing_vec.mult(f_f[(int)(p.x - imgTopLeftCorner_X)][(int)(p.y)]);
              
-             p.netForce.add(fairing_vec);  
+             p.FairingForce.add(fairing_vec);  
              
          }
       
@@ -530,29 +615,18 @@ class PointSystem
          for(Point p : points)
          {
            
-             if (p.netForce.mag() == 0.0) continue;
-            
-             //get x and y location on image for point p
-            int x = (int) (p.x - imgTopLeftCorner_X);    int y = (int) p.y;
-             p.netForce.mult(f_a[x][y]);  // this is the only point when we are sure that all the AR forces on a point have been computed and accumulated, so apply f_a scaling
-
-             PVector temp = p.netForce.copy(); //later for printing the old value if later netforce turns out NaN
-
-             if(Float.isNaN(p.netForce.x) || Float.isNaN(p.netForce.y))
-             {
-                   println("updateARforces_w_anisotropy(): p.netForce before anisotropy " + p.netForce);
-             }
-             
+             if (p.ARForce.mag() == 0.0) continue;
+                
              PVector gradient = gradient_vector(p);
              
              if (gradient.mag() == 0.0) continue;
              
              
-             float dot = gradient.dot(p.netForce);
+             float dot = gradient.dot(p.ARForce);
              gradient.normalize();
              gradient.mult(dot);
              
-             p.netForce.add(gradient);
+             p.ARForce.add(gradient);
 
 
              if(Float.isNaN(gradient.x) || Float.isNaN(gradient.y))
@@ -563,11 +637,10 @@ class PointSystem
              }                          
              
              
-             if(Float.isNaN(p.netForce.x) || Float.isNaN(p.netForce.y))
+             if(Float.isNaN(p.ARForce.x) || Float.isNaN(p.ARForce.y))
              { 
-                     println("updateARforces_w_anisotropy(): p.netForce After anisotropy " + p.netForce + " befor anisotropy " + temp + " gradient " + gradient );
+                     println("updateARforces_w_anisotropy(): p.ARForce After anisotropy " + p.ARForce + " gradient " + gradient );
              }
-             //else if (debug) println("updateARforces_w_anisotropy(): p.netForce After anisotropy: " + p.netForce);
          }
     }
     
@@ -595,73 +668,161 @@ class PointSystem
       //println("Compute Net Forces and New Positions Of Points");
       if (has_attractionrepulsion) 
       {
-           computeARforces();     
-           if (has_anisotropy) { // this is checked if AR is on
+           computeARforces();
+           if (has_anisotropy) { // anisotropy is checked for and performed iff AR is on 
              updateARforces_w_anisotropy();
            }
       }
       
-      //apply forces which do not depend on other points
-      for(Point p: points){
-          //doing anisotropy based of image                        
-           if (has_attractionrepulsion){} //p.AdjustandAddARForce();   //adjust the AR force based on gradient of image pixel at point location p1 and  accumulate force in point p1
+        //compute fairing forces 
+      if (has_fairing) fairing();
 
-          //if(coeff_friction > 0.0) p.apply_friction(); //since p.velocity is set to 0 before iteration, friction will compute to 0
-          if(has_brownianmotion) 
-          {
+      //compute new positions of points
+      for(Point p: points){
+         if(has_brownianmotion) 
+         {
               p.apply_brownianmotion();
-          }
+         }
           
-       }
-       
-       
-       //compute new positions of points
-        for(Point p: points){
+         p.apply_transformation();
           
-          p.apply_transformation();
-          
-        }
+      }
         
-      
     }
     //reset things to get ready for next iteration
     void getReadyForNextIteration()
     {
-         // cleat the points lists in tiles from last iteration and insert updated points
+         // clear the points lists in tiles from last iteration
          for (int tile_i = 0; tile_i < numGridRows; tile_i++){
              for (int tile_j = 0; tile_j < numGridColumns; tile_j++){
                 gridTiles[tile_i][tile_j].clearPointList();
              }
          }
-        //coumpute fairing forces 
-        if (has_fairing) fairing();
-        
-        
-        //before next iteration, resample points 
+         
+        // clear array for next oteration. This used to map current line segments to avoid  a given point movement to cross a line segment,
+        if (constrainMoves) clearLineSegmentsMappedOnImageArray();  
+ 
+         // POINT OPS BEFORE RESAMPLING
+         for(int i = 0; i < points.size(); i++){
+          
+            Point p = points.get(i);
+          
+            //set the next position of point
+            if (constrainMoves) {
+              p.x = p.constrained_next_x;  
+              p.y = p.constrained_next_y;
+            }
+            else {
+              p.x = p.next_x;  
+              p.y = p.next_y;            
+            }
+          }
+               
+        //before next iteration, resample points based on new x, y of points
         resample(); 
          
+        // POINT OPS AFTER RESAMPLING 
         for(int i = 0; i < points.size(); i++){
           
           Point p = points.get(i);
-          
-          //set the next position of point
-          p.x = p.next_x;  
-          p.y = p.next_y;
           
           //map next location of point to tiles
           InsertPointIntoTileItisOn(p);
           // also reset the netforce and velocity on a point for next iteration
 
           p.netForce.set(0.0,0.0);
+          p.BRForce.set(0.0, 0.0);
+          p.ARForce.set(0.0, 0.0);
+          p.FairingForce.set(0.0, 0.0);
           p.velocity.set(0.0,0.0);
           
           //recompute point's index in global list at start of every iteration to efficiently get the index of point
    
           p.myindexingloballist = i;
           //p.printPointDetails();
+          
+          if (constrainMoves) {
+            MarkPixelsAroundPointasOwnedByIt(p.x,p.y,i); // basically nobody comes into this proximity
+            MarkAdditionalPixelsCoveredByLeftLineSegmentFromPointAsOOB(i);    // array used to map current line segments to avoid  a given point movement to cross a line segment,
+          }
         }
            
       
+    }
+    
+    void MarkPixelsAroundPointasOwnedByIt(float x, float y, int point_index)
+    {
+      int xme = int (x);
+      int yme = int (y);
+      int xminus = constrain((int)(x-0.5), top_left_X, bottom_right_X);
+      int xplus = constrain((int)(x+0.5), top_left_X, bottom_right_X);
+      int yminus = constrain((int)(y-0.5), top_left_Y, bottom_right_Y);
+      int yplus = constrain((int)(y+0.5), top_left_Y, bottom_right_Y);
+
+      lineSegmentsMappedOnImage[xme-imgTopLeftCorner_X][yme] = 
+      lineSegmentsMappedOnImage[xme-imgTopLeftCorner_X][yminus] =
+      lineSegmentsMappedOnImage[xme-imgTopLeftCorner_X][yplus] =
+      lineSegmentsMappedOnImage[xminus-imgTopLeftCorner_X][yme] =
+      lineSegmentsMappedOnImage[xplus-imgTopLeftCorner_X][yme] =
+      lineSegmentsMappedOnImage[xminus-imgTopLeftCorner_X][yminus] =
+      lineSegmentsMappedOnImage[xplus-imgTopLeftCorner_X][yplus] =
+      lineSegmentsMappedOnImage[xminus-imgTopLeftCorner_X][yplus] =
+      lineSegmentsMappedOnImage[xplus-imgTopLeftCorner_X][yminus] = point_index;
+      
+    }
+    
+   //map current line segments on 2D screen array to avoid  a given point move to cross a line segment
+    void MarkAdditionalPixelsCoveredByLeftLineSegmentFromPointAsOOB(int point_index)
+    {
+      int prev_point_index = point_index - 1;
+      if (prev_point_index < 0 ) prev_point_index = points.size() - 1;
+      
+      Point p1 = points.get(prev_point_index); 
+      Point p2 = points.get(point_index); 
+      
+      float x2minusx1 = p2.x - p1.x;
+      float y2minusy1 = p2.y - p1.y;
+        
+
+      if (abs (p1.x - p2.x) >= 1)
+      {          
+          float lowerxBound = min (p1.x, p2.x);
+          float upperxBound = max (p1.x, p2.x);
+          //(y-y1)/(x-x1) = (y2-y1)/(x2-x1) - given slope is same, or 
+          for (float x = lowerxBound; x <= upperxBound; x+=0.5)
+          {
+            float y = p1.y + (y2minusy1/x2minusx1 ) * (x - p1.x);
+            
+            int i = constrain(round(x), top_left_X, bottom_right_X); 
+            int j = constrain(round(y), top_left_Y, bottom_right_Y);
+                       
+            if (lineSegmentsMappedOnImage[i-imgTopLeftCorner_X][j] ==  -MAX_INT) 
+              lineSegmentsMappedOnImage[i-imgTopLeftCorner_X][j] = -1; // line owns this
+          }
+      }
+      else  if (abs (p1.y - p2.y) >= 1)
+      {          
+          float loweryBound = min (p1.y, p2.y);
+          float upperyBound = max (p1.y, p2.y);
+          // (x-x1)/(y-y1) = (x2-x1)/(y2-y1) - given slope is same, or 
+          for (float y = loweryBound; y <= upperyBound; y+=0.5)
+          {
+            float x = p1.x + (x2minusx1/y2minusy1) * (y - p1.y);
+            
+            int i = (int) constrain(round(x) , top_left_X, bottom_right_X); 
+            int j = (int) constrain(round(y), top_left_Y, bottom_right_Y);
+                        
+            if (lineSegmentsMappedOnImage[i-imgTopLeftCorner_X][j] ==  -MAX_INT) 
+              lineSegmentsMappedOnImage[i-imgTopLeftCorner_X][j] = -1;  // line owns this
+          }
+      }
+      else
+      {
+        // do not expect both x difference and y difference of line segment to be less than 1
+        println("MapLeftLineSegmentFromPointIntoArray(): Two neighboring points have moved to almost same point");
+        p1.printPointDetails();
+        p2.printPointDetails();
+      }
     }
     
    //creates a circle inscribed in pointsystem bounding box with radius r = min(pointsystem.width, pointsystem.height) / 2
@@ -684,7 +845,6 @@ class PointSystem
         int estim_num_of_points = (int) (2 * PI * radius / D);
         
         
-        
         for(int i = 0; i < estim_num_of_points; i++)
         {
             vec.rotate(2 * PI / estim_num_of_points);
@@ -692,6 +852,7 @@ class PointSystem
             p_x = vec.x + (top_left_X + bottom_right_X) / 2;
             p_y = vec.y + (top_left_Y + bottom_right_Y) / 2;
             points.add(new Point(p_x, p_y, this));
+            
         }
         
      
